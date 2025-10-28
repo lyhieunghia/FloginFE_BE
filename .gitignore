@@ -1,0 +1,23 @@
+# === Global ===
+.DS_Store
+*.log
+.env
+
+# === Frontend ===
+frontend/node_modules/
+frontend/dist/
+frontend/.env*
+frontend/coverage/
+
+# === Backend ===
+backend/target/
+backend/.mvn/
+backend/.idea/
+backend/.classpath
+backend/.project
+backend/.settings/
+
+# === IDEs ===
+.vscode/
+.idea/
+*.iml
