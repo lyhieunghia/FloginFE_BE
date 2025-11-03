@@ -16,6 +16,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
+    "test:coverage": "react-scripts test --coverage --watchAll=false",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -40,8 +41,8 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "msw": "^2.12.0",
-    "whatwg-fetch": "^3.6.20"
-<<<<<<< Updated upstream
+    "whatwg-fetch": "^3.6.20",
+    "cross-env": "^10.1.0"
   }
 =======
   },
