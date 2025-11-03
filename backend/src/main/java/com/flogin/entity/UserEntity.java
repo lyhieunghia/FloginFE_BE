@@ -2,10 +2,6 @@ package com.flogin.entity;
 
 import jakarta.persistence.*;
 
-package com.flogin.entity;
-
-import jakarta.persistence.*;
-
 @Entity
 @Table(name = "users")
 public class UserEntity {
