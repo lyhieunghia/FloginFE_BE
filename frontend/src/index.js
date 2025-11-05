@@ -1,15 +1,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-<<<<<<< Updated upstream
+import { BrowserRouter } from 'react-router-dom'; 
 import App from './App.jsx';
-=======
-import './index.css';
-import App from './App';
->>>>>>> Stashed changes
+import './setupTests'; 
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    <BrowserRouter> {/* 2. Bọc <App> */}
+      <App />
+    </BrowserRouter>
   </React.StrictMode>
 );
