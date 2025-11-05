@@ -20,6 +20,7 @@ describe("ProductForm Component Unit Test", () => {
     mockValidateProduct.mockReturnValue({
       name: "Tên sản phẩm không được để trống",
       price: "Giá sản phẩm phải lớn hơn 0",
+      category: "Danh mục không được để trống",
     });
 
     render(<ProductForm onSubmit={mockOnSubmit} />);
@@ -38,6 +39,9 @@ describe("ProductForm Component Unit Test", () => {
     );
     expect(await screen.findByTestId("error-price")).toHaveTextContent(
       "Giá sản phẩm phải lớn hơn 0"
+    );
+    expect(await screen.findByTestId("error-category")).toHaveTextContent(
+      "Danh mục không được để trống"
     );
 
     // 3. Hàm onSubmit không được gọi
