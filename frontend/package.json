@@ -50,6 +50,10 @@
   "jest": {
     "transformIgnorePatterns": [
       "node_modules/(?!axios)/"
+    ],
+    "coveragePathIgnorePatterns": [
+      "<rootDir>/src/index.js",
+      "<rootDir>/src/setupTests.js" 
     ]
   }
 }
