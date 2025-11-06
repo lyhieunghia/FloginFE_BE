@@ -4,10 +4,19 @@ import { validateUsername, validatePassword } from './utils/validation';
 
 /**
  * Props:
- * - baseUrl: prefix API (mặc định rỗng)
- * - debugLog: bật/tắt console log (mặc định true)
+ * - mockApi?: (username, password) => Promise<{ success: boolean, message?: string, token?: string }>
+ * - debugLog?: boolean (mặc định true)
+ *
+ * Deprecated/ignored (để không vỡ code cũ):
+ * - baseUrl, useMockApi
  */
-export default function App({ baseUrl = '', debugLog = true }) {
+export default function App({
+  mockApi,
+  debugLog = true,
+  // deprecated (ignored)
+  baseUrl,     // eslint-disable-line no-unused-vars
+  useMockApi,  // eslint-disable-line no-unused-vars
+}) {
   const [username, setUsername]   = useState('');
   const [password, setPassword]   = useState('');
   const [errors, setErrors]       = useState({ username: '', password: '' });
@@ -36,6 +45,15 @@ export default function App({ baseUrl = '', debugLog = true }) {
     return !(usernameError || passwordError);
   };
 
+  // Mock API tích hợp sẵn (skip backend hoàn toàn)
+  const builtinMockApi = async (u, p) => {
+    await new Promise(r => setTimeout(r, 200)); // giả lập trễ nhẹ
+    if (u === 'testuser' && p === 'Test123') {
+      return { success: true, message: 'thanh cong', token: 'fake-token-123' };
+    }
+    return { success: false, message: 'sai thong tin' };
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setClickedSubmit(true);
@@ -51,7 +69,7 @@ export default function App({ baseUrl = '', debugLog = true }) {
     });
 
     const isValid = runValidation();
-    log('✅ Validation result:', isValid, 'errors:', errors);
+    log('✅ Validation result:', isValid);
 
     if (!isValid) {
       setErrorShown(true);
@@ -59,54 +77,28 @@ export default function App({ baseUrl = '', debugLog = true }) {
       return;
     }
 
-    // Gọi API thật (hoặc để MSW mock trong test)
     setLoading(true);
-    const url = `${baseUrl}/api/auth/login`;
-    const body = { username: username.trim(), password };
-
+    setApiCalled(true); // tính là đã "gọi API" (MOCK)
     try {
-      setApiCalled(true);
-      log('🌐 Calling API:', url);
-      log('📦 Request body:', { ...body, password: '***' });
+      const fn = typeof mockApi === 'function' ? mockApi : builtinMockApi;
+      const result = await fn(username.trim(), password);
 
-      const t0 = performance.now();
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-
-      const dt = (performance.now() - t0).toFixed(1) + 'ms';
-      log('📥 Response status:', res.status, res.ok ? '(OK)' : '(NOT OK)', `in ${dt}`);
-
-      let data = {};
-      try {
-        data = await res.json();
-        log('🧾 Response JSON:', data);
-      } catch {
-        log('⚠️ No/invalid JSON body');
-      }
-
-      const tokenHeader = res.headers.get('X-Auth-Token');
-      if (tokenHeader) log('🔑 X-Auth-Token:', tokenHeader);
-
-      if (res.ok && data?.success) {
-        const token = tokenHeader || data.token;
-        try { if (token) localStorage.setItem('auth_token', token); } catch {}
-        const msg = data?.message || 'thanh cong';
+      if (result.success) {
+        const msg = result.message || 'thanh cong';
         setMessage(msg);
         setSuccessShown(true);
-        log('✅ SUCCESS:', msg);
+        try { if (result.token) localStorage.setItem('auth_token', result.token); } catch {}
+        log('✅ SUCCESS (MOCK):', result);
       } else {
-        const msg = data?.message || 'Đăng nhập thất bại';
+        const msg = result.message || 'Đăng nhập thất bại';
         setMessage(msg);
         setErrorShown(true);
-        log('❌ ERROR:', msg);
+        log('❌ ERROR (MOCK):', result);
       }
     } catch (err) {
       setMessage('Network error, please try again');
       setErrorShown(true);
-      log('🌩️ Network error:', err?.message || err);
+      log('🌩️ Mock error:', err?.message || err);
     } finally {
       setLoading(false);
       console.groupEnd();
@@ -118,7 +110,9 @@ export default function App({ baseUrl = '', debugLog = true }) {
       <div style={{ display: 'grid', gap: 20, gridTemplateColumns: '1fr 340px', alignItems: 'start' }}>
         {/* Form */}
         <form onSubmit={handleLogin} style={{ border: '1px solid #eee', padding: 16, borderRadius: 12 }}>
-          <h2 style={{ marginTop: 0 }}>Đăng nhập</h2>
+          <h2 style={{ marginTop: 0 }}>
+            Đăng nhập (MOCK)
+          </h2>
 
           <div style={{ marginBottom: 12 }}>
             <label style={{ display: 'block', marginBottom: 6 }}>Tên đăng nhập:</label>
@@ -225,19 +219,19 @@ export default function App({ baseUrl = '', debugLog = true }) {
             (b) Test form submission & API calls <small>(2 điểm)</small>
           </div>
           <ul style={{ marginTop: 4 }}>
-            <li><Status ok={apiCalled} /> Đã gọi API <code>/api/auth/login</code></li>
+            <li><Status ok={apiCalled} /> Đã “gọi API” (MOCK)</li>
           </ul>
 
           <div style={{ margin: '10px 0 8px', fontWeight: 700 }}>
             (c) Test error handling & success messages <small>(1 điểm)</small>
           </div>
           <ul style={{ marginTop: 4 }}>
-            <li><Status ok={successShown} /> Hiển thị thông điệp <code>thanh cong</code> khi login OK</li>
-            <li><Status ok={errorShown} /> Hiển thị thông điệp lỗi khi 401/Network/validate fail</li>
+            <li><Status ok={successShown} /> Hiển thị <code>thanh cong</code> khi OK</li>
+            <li><Status ok={errorShown} /> Hiển thị lỗi khi 401/Network/validate fail</li>
           </ul>
 
           <p style={{ fontSize: 12, color: '#666' }}>
-            Mở DevTools → Console để xem log chi tiết mọi bước (input, submit, API, response).
+            Mở DevTools → Console để xem log chi tiết mọi bước (input, submit, MOCK, response).
           </p>
         </aside>
       </div>
