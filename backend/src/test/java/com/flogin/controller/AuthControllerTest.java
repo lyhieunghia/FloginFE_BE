@@ -8,9 +8,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -26,7 +33,8 @@ import static org.hamcrest.Matchers.*;
  * b) Test response structure và status codes (1 điểm)
  * c) Test CORS và headers (1 điểm)
  */
-@WebMvcTest(AuthController.class)
+@WebMvcTest(controllers = AuthController.class)
+@ContextConfiguration(classes = {AuthController.class, AuthControllerTest.TestConfig.class})
 @DisplayName("Auth Controller API Tests")
 class AuthControllerTest {
 
@@ -361,5 +369,21 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validRequest)))
                 .andExpect(status().isNotFound());
+    }
+
+    /**
+     * Configuration class để test không cần Spring Boot Application
+     */
+    @Configuration
+    @EnableWebSecurity
+    static class TestConfig {
+        
+        @Bean
+        SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+            http
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+            return http.build();
+        }
     }
 }
