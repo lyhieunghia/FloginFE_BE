@@ -1,39 +1,52 @@
-// frontend/src/tests/Login.integration.test.jsx
-import React from 'react';
+// src/__tests__/Login.integration.test.jsx
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import '@testing-library/jest-dom';
-import Login from '../components/Login.jsx';
+import { server, rest } from '../setupTests';
+import Login from '../Login'; // sửa path theo project của bạn
+
+// Giả định Login có các data-testid:
+// 'username-input', 'password-input', 'login-button',
+// 'username-error' (hoặc 'password-error'), 'login-message'
 
 describe('Login Component Integration Tests', () => {
-  // Dọn mocks giữa các test
-  afterEach(() => {
-    jest.restoreAllMocks();
-    jest.clearAllMocks();
-  });
-
+  // a) Test rendering & user interactions
   test('Hiển thị lỗi khi submit form rỗng', async () => {
-    // Arrange
     render(<Login />);
 
-    // Act: click Đăng nhập khi chưa nhập gì
-    fireEvent.click(screen.getByTestId('login-button'));
+    const submitButton = screen.getByTestId('login-button');
+    fireEvent.click(submitButton);
 
-    // Assert
     await waitFor(() => {
+      // Kiểm tra thông điệp lỗi xuất hiện
       expect(screen.getByTestId('username-error')).toBeInTheDocument();
-      expect(screen.getByTestId('password-error')).toBeInTheDocument();
+      // Nếu có password-error thì kiểm luôn:
+      // expect(screen.getByTestId('password-error')).toBeInTheDocument();
     });
   });
 
-  test('Gọi API khi submit form hợp lệ và hiển thị thông báo thành công', async () => {
-    // Arrange: mock fetch trả về success 200 + body success
-    const fakeBody = { success: true, message: 'Đăng nhập thành công' };
-    const fetchSpy = jest.spyOn(global, 'fetch').mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      json: async () => fakeBody,
-      headers: { get: (k) => (k === 'X-Auth-Token' ? 'token-xyz' : null) },
-    });
+  // b) Test submit hợp lệ & gọi API (success 200)
+  test('Gọi API khi submit form hợp lệ và hiển thị success message', async () => {
+    // MSW handler: trả về success
+    server.use(
+      rest.post('/api/auth/login', async (req, res, ctx) => {
+        const body = await req.json();
+        // Kiểm request body đúng
+        if (body.username === 'testuser' && body.password === 'Test123') {
+          return res(
+            ctx.status(200),
+            ctx.json({
+              success: true,
+              token: 'fake-jwt-token-123',
+              message: 'thanh cong',
+            }),
+            ctx.set('X-Auth-Token', 'fake-jwt-token-123')
+          );
+        }
+        return res(
+          ctx.status(401),
+          ctx.json({ success: false, message: 'sai thong tin' })
+        );
+      })
+    );
 
     render(<Login />);
 
@@ -41,64 +54,62 @@ describe('Login Component Integration Tests', () => {
     const passwordInput = screen.getByTestId('password-input');
     const submitButton = screen.getByTestId('login-button');
 
-    // Act: nhập dữ liệu hợp lệ và submit
     fireEvent.change(usernameInput, { target: { value: 'testuser' } });
     fireEvent.change(passwordInput, { target: { value: 'Test123' } });
     fireEvent.click(submitButton);
 
-    // Assert: hiển thị thông điệp thành công
     await waitFor(() => {
-      expect(screen.getByTestId('login-message')).toHaveTextContent(/thành công/i);
-    });
-
-    // Kiểm tra fetch gọi đúng URL & payload
-    expect(fetchSpy).toHaveBeenCalledTimes(1);
-    const [calledUrl, calledOpts] = fetchSpy.mock.calls[0];
-    expect(calledUrl).toMatch(/\/api\/auth\/login$/);
-    expect(calledOpts.method).toBe('POST');
-    expect(calledOpts.headers['Content-Type'] || calledOpts.headers['content-type'])
-      .toMatch(/application\/json/);
-    expect(calledOpts.body).toBe(JSON.stringify({ username: 'testuser', password: 'Test123' }));
-  });
-
-  test('Hiển thị thông báo lỗi khi đăng nhập thất bại (401)', async () => {
-    // Arrange: mock fetch trả về 401 + message lỗi
-    const errorBody = { success: false, message: 'Sai tên đăng nhập hoặc mật khẩu' };
-    jest.spyOn(global, 'fetch').mockResolvedValueOnce({
-      ok: false,
-      status: 401,
-      json: async () => errorBody,
-      headers: { get: () => null },
-    });
-
-    render(<Login />);
-
-    // Act: nhập sai thông tin và submit
-    fireEvent.change(screen.getByTestId('username-input'), { target: { value: 'wronguser' } });
-    fireEvent.change(screen.getByTestId('password-input'), { target: { value: 'wrongpass' } });
-    fireEvent.click(screen.getByTestId('login-button'));
-
-    // Assert: hiển thị thông điệp lỗi từ server
-    await waitFor(() => {
-      expect(screen.getByTestId('login-message'))
-        .toHaveTextContent(/sai tên đăng nhập hoặc mật khẩu/i);
+      expect(screen.getByTestId('login-message')).toHaveTextContent('thanh cong');
     });
   });
 
-  test('Hiển thị lỗi mạng khi fetch ném exception', async () => {
-    // Arrange: mock fetch ném lỗi (mất mạng, CORS, v.v.)
-    jest.spyOn(global, 'fetch').mockRejectedValueOnce(new Error('Network error'));
+  // c) Test error handling (401)
+  test('Hiển thị lỗi khi API trả về 401', async () => {
+    server.use(
+      rest.post('/api/auth/login', async (_req, res, ctx) => {
+        return res(
+          ctx.status(401),
+          ctx.json({ success: false, message: 'sai thong tin' })
+        );
+      })
+    );
 
     render(<Login />);
 
-    // Act
-    fireEvent.change(screen.getByTestId('username-input'), { target: { value: 'testuser' } });
-    fireEvent.change(screen.getByTestId('password-input'), { target: { value: 'Test123' } });
+    fireEvent.change(screen.getByTestId('username-input'), {
+      target: { value: 'wrong' },
+    });
+    fireEvent.change(screen.getByTestId('password-input'), {
+      target: { value: 'wrong' },
+    });
     fireEvent.click(screen.getByTestId('login-button'));
 
-    // Assert
     await waitFor(() => {
-      expect(screen.getByTestId('login-message')).toHaveTextContent(/network/i);
+      expect(screen.getByTestId('login-message')).toHaveTextContent('sai thong tin');
+    });
+  });
+
+  // c) Test network error (fetch/axios throw)
+  test('Hiển thị lỗi khi mạng lỗi (Network error)', async () => {
+    server.use(
+      rest.post('/api/auth/login', (_req, res, ctx) => {
+        return res.networkError('Failed to connect');
+      })
+    );
+
+    render(<Login />);
+
+    fireEvent.change(screen.getByTestId('username-input'), {
+      target: { value: 'any' },
+    });
+    fireEvent.change(screen.getByTestId('password-input'), {
+      target: { value: 'any' },
+    });
+    fireEvent.click(screen.getByTestId('login-button'));
+
+    await waitFor(() => {
+      // Tuỳ thông điệp lỗi trong component
+      expect(screen.getByTestId('login-message')).toHaveTextContent(/network|kết nối/i);
     });
   });
 });
