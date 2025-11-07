@@ -150,4 +150,18 @@ describe("Product Validation Tests", () => {
     const errors = validateProduct(product);
     expect(errors.quantity).toBe('Số lượng phải là một con số');
   });
+
+  test('Price không phải là số (NaN) trả về lỗi', () => {
+    const product = { name: 'Test', price: 'chữ không phải số', quantity: 1, category: 'Test' };
+    const errors = validateProduct(product);
+    // Test này sẽ cover dòng 22
+    expect(errors.price).toBe('Giá sản phẩm phải là một con số');
+  });
+
+  test('Quantity không phải là số nguyên (float) trả về lỗi', () => {
+    const product = { name: 'Test', price: 100, quantity: 10.5, category: 'Test' };
+    const errors = validateProduct(product);
+    // Test này sẽ cover dòng 41
+    expect(errors.quantity).toBe('Số lượng phải là số nguyên');
+  });
 });
