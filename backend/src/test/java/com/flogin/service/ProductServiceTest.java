@@ -232,47 +232,9 @@ class ProductServiceTest {
         assertEquals("Laptop", resultPage.getContent().get(0).getName());
         verify(productRepository, times(1)).findAll(pageable);
     }
+    
     @Test
-    @DisplayName("TC9: [THẤT BẠI] Cố tình kiểm tra sai tên sản phẩm khi update")
-    void testUpdateProduct_DeliberateFailure() {
-        // 1. Arrange
-        Long productId = 1L;
-        ProductDto updateDto = new ProductDto("Laptop Gaming", 20000000, 5, "Electronics");
-        Product existingProduct = new Product(productId, "Laptop", 15000000, 10, "Electronics");
-        Product updatedProduct = new Product(productId, "Laptop Gaming", 20000000, 5, "Electronics");
-
-        when(productRepository.findById(productId)).thenReturn(Optional.of(existingProduct));
-        when(productRepository.save(any(Product.class))).thenReturn(updatedProduct);
-
-        // 2. Act
-        ProductDto result = productService.updateProduct(productId, updateDto);
-
-        // 3. Assert (CỐ TÌNH SAI)
-        // Logic nghiệp vụ trả về "Laptop Gaming", nhưng chúng ta mong đợi "Sai Tên"
-        // Test này sẽ FAIL (màu đỏ)
-        assertEquals("Sai Tên", result.getName(), "Test case này bị fail do mong đợi tên sản phẩm không chính xác");
-    }
-
-    @Test
-    @DisplayName("TC10: [THẤT BẠI] Cố tình kiểm tra sai ID sản phẩm khi lấy chi tiết")
-    void testGetProduct_DeliberateFailure() {
-        // 1. Arrange
-        Long productId = 5L;
-        Product product = new Product(productId, "Chuột", 500000, 20, "Accessory");
-        when(productRepository.findById(productId)).thenReturn(Optional.of(product));
-
-        // 2. Act
-        ProductDto result = productService.getProduct(productId);
-
-        // 3. Assert (CỐ TÌNH SAI)
-        // Logic nghiệp vụ trả về ID là 5L, nhưng chúng ta mong đợi 999L
-        // Test này sẽ FAIL (màu đỏ)
-        assertEquals(999L, result.getId(), "Test case nay bi fail do mong doi ID khong chinh xac");
-    }
-
-
-    @Test
-    @DisplayName("TC11: [PASS] Xử lý lỗi khi tạo sản phẩm (ví dụ: lỗi DB)")
+    @DisplayName("TC9: [PASS] Xử lý lỗi khi tạo sản phẩm (ví dụ: lỗi DB)")
     void testCreateProduct_DatabaseError() {
         // 1. Arrange
         ProductDto productDto = new ProductDto("Laptop", 15000000, 10, "Electronics");
