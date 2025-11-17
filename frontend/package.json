@@ -41,5 +41,10 @@
     "@testing-library/react": "^16.3.0",
     "msw": "^2.12.0",
     "whatwg-fetch": "^3.6.20"
+<<<<<<< Updated upstream
   }
+=======
+  },
+  "proxy": "http://localhost:8081"
+>>>>>>> Stashed changes
 }

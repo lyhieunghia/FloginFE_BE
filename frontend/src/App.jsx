@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 // src/App.jsx
 import React, { useState } from 'react';
 import { validateUsername, validatePassword } from './utils/validation';
@@ -238,3 +239,35 @@ export default function App({
     </div>
   );
 }
+=======
+import React from 'react';
+import Login from './components/Login';
+import { loginApi } from './services/apiService';
+import './App.css';
+
+/**
+ * Main App Component
+ * Quản lý authentication flow và routing
+ */
+function App() {
+  const handleLoginSuccess = (token, userData) => {
+    console.log('✅ Login successful!');
+    console.log('📝 Token:', token);
+    console.log('👤 User data:', userData);
+    
+    // Có thể redirect hoặc update app state ở đây
+    // Example: navigate to dashboard, update user context, etc.
+  };
+
+  return (
+    <div className="App">
+      <Login 
+        mockApi={loginApi}  // Sử dụng real API thay vì mock
+        onSuccess={handleLoginSuccess} 
+      />
+    </div>
+  );
+}
+
+export default App;
+>>>>>>> Stashed changes
