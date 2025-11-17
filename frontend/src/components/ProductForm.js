@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+// src/components/ProductForm.js
+
+import React, { useState, useEffect } from "react";
 import { validateProduct } from "../utils/productValidation";
 
-export const ProductForm = ({ onSubmit }) => {
+export const ProductForm = ({ onSubmit, productToEdit }) => {
   const [product, setProduct] = useState({
     name: "",
     price: "",
@@ -10,6 +12,28 @@ export const ProductForm = ({ onSubmit }) => {
     category: "",
   });
   const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    if (productToEdit) {
+      setProduct({
+        // Đảm bảo các trường không liên quan đến form (như id) vẫn được giữ
+        ...productToEdit, 
+        // Chuyển đổi giá trị số sang chuỗi để điền vào input type="number"
+        price: productToEdit.price != null ? String(productToEdit.price) : '',
+        quantity: productToEdit.quantity != null ? String(productToEdit.quantity) : '',
+      });
+      setErrors({}); 
+    } else {
+      setProduct({
+        name: "",
+        price: "",
+        quantity: "",
+        description: "",
+        category: "",
+      });
+      setErrors({}); 
+    }
+  }, [productToEdit]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -22,65 +46,106 @@ export const ProductForm = ({ onSubmit }) => {
     setErrors(validationErrors);
 
     if (Object.keys(validationErrors).length === 0) {
-      onSubmit(product);
+
+      // 1. Chuyển đổi dữ liệu (từ string sang number)
+      const finalProduct = {
+          ...product,
+          price: Number(product.price),
+          quantity: Number(product.quantity),
+      };
+      
+      // 2. 🟢 SỬA LỖI QUAN TRỌNG: Gọi onSubmit với dữ liệu đã chuyển đổi (finalProduct)
+      onSubmit(finalProduct); 
     }
   };
 
+  // --- Cập nhật giao diện (UI) với Bootstrap ---
   return (
-    <form onSubmit={handleSubmit}>
-      <div>
-        <label htmlFor="name">Tên sản phẩm:</label>
-        <input
-          id="name"
-          name="name"
-          value={product.name}
-          onChange={handleChange}
-          data-testid="product-name"
-        />
-        {errors.name && <span data-testid="error-name">{errors.name}</span>}
+    // ... (Phần JSX giữ nguyên, vì nó đã đúng) ...
+    <div className="card shadow-sm">
+      <div className="card-body">
+        <form onSubmit={handleSubmit}>
+          
+          {/* Trường Tên sản phẩm */}
+          <div className="mb-3">
+            <label htmlFor="name" className="form-label">Tên sản phẩm:</label>
+            <input
+              id="name"
+              name="name"
+              value={product.name}
+              onChange={handleChange}
+              data-testid="product-name"
+              className={`form-control ${errors.name ? 'is-invalid' : ''}`}
+            />
+            {errors.name && 
+              <div data-testid="error-name" className="invalid-feedback">
+                {errors.name}
+              </div>
+            }
+          </div>
+          
+          {/* Trường Giá */}
+          <div className="mb-3">
+            <label htmlFor="price" className="form-label">Giá:</label>
+            <input
+              id="price"
+              name="price"
+              type="number"
+              value={product.price || ''} 
+              onChange={handleChange}
+              data-testid="product-price"
+              className={`form-control ${errors.price ? 'is-invalid' : ''}`}
+            />
+            {errors.price && 
+              <div data-testid="error-price" className="invalid-feedback">
+                {errors.price}
+              </div>
+            }
+          </div>
+          
+          {/* Trường Số lượng */}
+          <div className="mb-3">
+            <label htmlFor="quantity" className="form-label">Số lượng:</label>
+            <input
+              id="quantity"
+              name="quantity"
+              type="number"
+              value={product.quantity || ''}
+              onChange={handleChange}
+              data-testid="product-quantity"
+              className={`form-control ${errors.quantity ? 'is-invalid' : ''}`}
+            />
+            {errors.quantity && (
+              <div data-testid="error-quantity" className="invalid-feedback">
+                {errors.quantity}
+              </div>
+            )}
+          </div>
+          
+          {/* Trường Danh mục */}
+          <div className="mb-3">
+            <label htmlFor="category" className="form-label">Danh mục:</label>
+            <input
+              id="category"
+              name="category"
+              value={product.category}
+              onChange={handleChange}
+              data-testid="product-category"
+              className={`form-control ${errors.category ? 'is-invalid' : ''}`}
+            />
+            {errors.category && (
+              <div data-testid="error-category" className="invalid-feedback">
+                {errors.category}
+              </div>
+            )}
+          </div>
+          
+          {/* Nút Submit */}
+          <button type="submit" data-testid="submit-button" className="btn btn-primary w-100">
+            {productToEdit ? 'Cập nhật' : 'Lưu'}
+          </button>
+        </form>
       </div>
-      <div>
-        <label htmlFor="price">Giá:</label>
-        <input
-          id="price"
-          name="price"
-          type="number"
-          value={product.price}
-          onChange={handleChange}
-          data-testid="product-price"
-        />
-        {errors.price && <span data-testid="error-price">{errors.price}</span>}
-      </div>
-      <div>
-        <label htmlFor="quantity">Số lượng:</label>
-        <input
-          id="quantity"
-          name="quantity"
-          type="number"
-          value={product.quantity}
-          onChange={handleChange}
-          data-testid="product-quantity"
-        />
-        {errors.quantity && (
-          <span data-testid="error-quantity">{errors.quantity}</span>
-        )}
-      </div>
-      <div>
-        <label htmlFor="category">Danh mục:</label>
-        <input
-          id="category"
-          name="category"
-          value={product.category}
-          onChange={handleChange}
-          data-testid="product-category"
-        />
-        {errors.category && (
-          <span data-testid="error-category">{errors.category}</span>
-        )}
-      </div>
-      <button type="submit" data-testid="submit-button">
-        Lưu
-      </button>
-    </form>
+    </div>
   );
 };
