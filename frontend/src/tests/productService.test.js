@@ -4,8 +4,8 @@ import {
   createProduct,
   deleteProduct,
   getAllProducts,
-} from "./productService";
-import { updateProduct } from "./productService";
+} from "../services/productService";
+import { updateProduct } from "../services/productService";
 // Mock toàn bộ module axios
 jest.mock("axios");
 const mockedAxios = axios;

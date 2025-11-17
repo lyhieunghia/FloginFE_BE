@@ -29,6 +29,9 @@ public class SecurityConfig {
                 // 5. CHO PHÉP TẤT CẢ mọi request đến "/api/**"
                 // Điều này quan trọng nhất để test API
                 .requestMatchers("/api/**").permitAll()
+
+                .requestMatchers("/api/products/**").permitAll() 
+                .requestMatchers("/api/testing/**").permitAll()
                 
                 // 6. Các request khác có thể yêu cầu xác thực (nếu cần)
                 .anyRequest().authenticated()

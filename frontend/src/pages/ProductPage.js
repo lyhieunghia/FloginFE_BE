@@ -1,3 +1,7 @@
+// src/pages/ProductPage.js
+// Đây là file đã được cập nhật giao diện với Bootstrap
+
+
 import React, { useState, useEffect } from 'react';
 import { ProductList } from '../components/ProductList';
 import { ProductForm } from '../components/ProductForm';
@@ -60,19 +64,43 @@ export const ProductPage = () => {
     alert(`Chức năng Sửa cho sản phẩm: ${product.name} (chưa cài đặt)`);
   };
 
-  // Đây là phần UI của trang
+  // --- Cập nhật giao diện (UI) với Bootstrap ---
   return (
-    <main>
-      {message && <div data-testid="success-message" className="message">{message}</div>}
+    <main className="container">
+      {/* Thông báo (Alerts) */}
+      {message && (
+        <div 
+          data-testid="success-message" 
+          // Tự động đổi màu alert dựa trên nội dung message
+          className={`alert ${message.includes('Lỗi') ? 'alert-danger' : 'alert-success'}`}
+          role="alert"
+        >
+          {message}
+        </div>
+      )}
 
-      <ProductForm onSubmit={handleAddProduct} />
+      {/* Bố cục 2 cột (Form và List) */}
+      <div className="row g-5">
+        
+        {/* Cột 1: Form Thêm Sản Phẩm */}
+        <div className="col-md-4">
+          <h2 className="h4">Thêm Sản Phẩm</h2>
+          <ProductForm onSubmit={handleAddProduct} />
+        </div>
 
-      <h2>Danh sách Sản phẩm</h2>
-      <ProductList 
-        products={products} 
-        onEdit={handleEditProduct} 
-        onDelete={handleDeleteProduct} 
-      />
+        {/* Cột 2: Danh Sách Sản Phẩm */}
+        <div className="col-md-8">
+          <h2 className="h4">Danh sách Sản phẩm</h2>
+          <div className="card shadow-sm">
+            <ProductList 
+              products={products} 
+              onEdit={handleEditProduct} 
+              onDelete={handleDeleteProduct} 
+            />
+          </div>
+        </div>
+      </div>
+
     </main>
   );
 }

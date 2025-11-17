@@ -8,7 +8,7 @@ import {
 } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
 import "@testing-library/jest-dom";
-import App from "./App"; // Test từ App (file router)
+import App from "../App"; // Test từ App (file router)
 import axios from "axios";
 
 // Helper function để reset DB (đã có từ bước trước)
@@ -27,7 +27,14 @@ describe("App Component Integration Tests (Req 4.2.1)", () => {
     // Mock các hàm của window
     window.confirm = jest.fn(() => true);
     window.alert = jest.fn();
-    window.history.pushState({}, "Test page", "/");
+    window.history.pushState({}, "Test page", "/products");
+
+  });
+
+  afterEach(() => {
+    // Dọn dẹp mocks/spies để các test độc lập, tránh rò rỉ state
+    jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   // =================================================================
@@ -193,12 +200,13 @@ describe("App Component Integration Tests (Req 4.2.1)", () => {
     const detailName = await screen.findByTestId("product-detail-name");
     expect(detailName).toHaveTextContent("Chi tiết Laptop");
     const detailPrice = await screen.findByTestId("product-detail-price");
-    expect(detailPrice).toHaveTextContent("Giá: 123,456 VND");
+    // Chấp nhận nhiều định dạng phân tách hàng nghìn tùy theo locale môi trường CI
+    expect(detailPrice).toHaveTextContent(/Giá:\s?123[.,\s]456 VND/);
     const detailQty = await screen.findByTestId("product-detail-quantity");
     expect(detailQty).toHaveTextContent("Số lượng: 7");
     const detailCat = await screen.findByTestId("product-detail-category");
     expect(detailCat).toHaveTextContent("Danh mục: Detail");
-    expect(screen.getByText("Quay về danh sách")).toBeInTheDocument();
+    expect(screen.getByText(/Quay về danh sách/)).toBeInTheDocument();
   });
 
   // =================================================================
@@ -212,7 +220,7 @@ describe("App Component Integration Tests (Req 4.2.1)", () => {
       .spyOn(axios, "get")
       .mockRejectedValueOnce(new Error("Network Error"));
 
-    render(
+    const { unmount } = render(
       <BrowserRouter>
         <App />
       </BrowserRouter>
@@ -226,6 +234,9 @@ describe("App Component Integration Tests (Req 4.2.1)", () => {
 
     // Khôi phục lại hàm axios.get gốc cho các test sau
     getSpy.mockRestore();
+
+  // Unmount instance đầu tiên trước khi render lần 2 để tránh trùng lặp node
+  unmount();
 
     // ⭐️ THÊM TEST CHO NHÁNH PHÂN TRANG ⭐️
     // Giả lập API GET trả về dữ liệu có phân trang

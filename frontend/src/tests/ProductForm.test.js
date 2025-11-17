@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom"; // (Bạn cần cài @testing-library/jest-dom )
-import { ProductForm } from "./ProductForm";
+import { ProductForm } from "../components/ProductForm";
 import * as Validation from "../utils/productValidation";
 
 // Mock hàm validateProduct

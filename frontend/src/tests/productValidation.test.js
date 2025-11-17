@@ -1,4 +1,4 @@
-import { validateProduct } from "./productValidation";
+import { validateProduct } from "../utils/productValidation";
 
 // Bắt đầu nhóm test cho Product Validation [cite: 292]
 describe("Product Validation Tests", () => {
