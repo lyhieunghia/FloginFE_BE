@@ -25,7 +25,7 @@ import {
 jest.mock("../services/productService");
 
 describe("ProductPage Mock Tests (Req 5.2.1)", () => {
-  
+
   beforeEach(() => {
     jest.clearAllMocks();
     // Giả lập window.confirm luôn trả về true (Đồng ý xóa)
@@ -34,8 +34,9 @@ describe("ProductPage Mock Tests (Req 5.2.1)", () => {
 
   test("Happy Path: Nên tải danh sách và thêm sản phẩm mới (Mocked)", async () => {
     // ---- PHẦN 1: Tải danh sách (Load) ----
+    // SỬA: Bổ sung category cho sản phẩm mock
     const mockData = [
-      { id: 1, name: "Sản phẩm Mock 1", price: 10000, quantity: 10 },
+      { id: 1, name: "Sản phẩm Mock 1", price: 10000, quantity: 10, category: "Mocked" },
     ];
     
     getAllProducts.mockResolvedValueOnce({
@@ -213,4 +214,111 @@ describe("ProductPage Mock Tests (Req 5.2.1)", () => {
     expect(createProduct).toHaveBeenCalledTimes(1);
     expect(getAllProducts).toHaveBeenCalledTimes(1); 
   });
+
+  test("Coverage: Nên hiển thị lỗi khi CẬP NHẬT sản phẩm thất bại (Update Sad Path)", async () => {
+    // SỬA LỖI 1: Bổ sung 'category' cho sản phẩm mock để qua validation
+    getAllProducts.mockResolvedValueOnce({ data: { content: [{ id: 10, name: 'Sản phẩm lỗi', price: 1, quantity: 1, category: 'Temp' }] } });
+    
+    // Mock Update thất bại
+    updateProduct.mockRejectedValueOnce(new Error("Update Failed"));
+    
+    render(<MemoryRouter><ProductPage /></MemoryRouter>);
+    
+    const editButton = await screen.findByTestId("edit-btn-10");
+    fireEvent.click(editButton);
+
+    // Sửa và submit
+    fireEvent.change(screen.getByTestId("product-name"), { target: { value: "Sản phẩm lỗi mới" } });
+    fireEvent.click(screen.getByText("Cập nhật"));
+
+    // SỬA LỖI 2: Thêm await waitFor để đảm bảo chờ state update từ promise rejection
+    await waitFor(() => {
+        expect(screen.getByTestId("success-message")).toHaveTextContent("Lỗi khi cập nhật sản phẩm");
+    });
+    expect(updateProduct).toHaveBeenCalledTimes(1);
+  });
+
+  test("Coverage: Nên hủy việc xóa khi người dùng nhấn 'Cancel' (Delete Confirm Branch)", async () => {
+    // SỬA: Bổ sung 'category'
+    getAllProducts.mockResolvedValueOnce({ data: { content: [{ id: 11, name: 'Sản phẩm Hủy', price: 1, quantity: 1, category: 'Test' }] } });
+    
+    // Giả lập người dùng nhấn CANCEL
+    window.confirm.mockReturnValueOnce(false); 
+    
+    render(<MemoryRouter><ProductPage /></MemoryRouter>);
+
+    const productRow = await screen.findByRole("row", { name: /Sản phẩm Hủy/i });
+    const deleteButton = within(productRow).getByTestId(/delete-btn-11/);
+    
+    fireEvent.click(deleteButton);
+
+    // Xác minh deleteProduct KHÔNG được gọi
+    expect(deleteProduct).not.toHaveBeenCalled();
+    // Xác minh sản phẩm vẫn còn trên list
+    expect(screen.getByText("Sản phẩm Hủy")).toBeInTheDocument();
+  });
+
+  test("Coverage: Nên reset form nếu sản phẩm đang SỬA bị XÓA khỏi danh sách (Editing Reset Branch)", async () => {
+    // SỬA: Bổ sung 'category'
+    const productToEdit = { id: 12, name: 'Sản phẩm Đang Sửa', price: 1, quantity: 1, category: 'Test' };
+    
+    // 1. Mock List (có sản phẩm)
+    getAllProducts.mockResolvedValueOnce({ data: { content: [productToEdit] } });
+    
+    // 2. Mock Delete thành công
+    deleteProduct.mockResolvedValueOnce({});
+    
+    // 3. Mock List (lần refresh)
+    getAllProducts.mockResolvedValueOnce({ data: { content: [] } }); 
+    
+    render(<MemoryRouter><ProductPage /></MemoryRouter>);
+
+    // A. KÍCH HOẠT CHẾ ĐỘ SỬA
+    fireEvent.click(await screen.findByTestId("edit-btn-12"));
+    expect(screen.getByText("Sửa Sản Phẩm")).toBeInTheDocument(); // Form là chế độ sửa
+    
+    // B. KÍCH HOẠT CHỨC NĂNG XÓA (cho chính sản phẩm đang sửa)
+    const productRow = await screen.findByRole("row", { name: /Sản phẩm Đang Sửa/i });
+    const deleteButton = within(productRow).getByTestId(/delete-btn-12/);
+    fireEvent.click(deleteButton);
+
+    // Chờ refresh
+    await waitFor(() => {
+        // C. KIỂM TRA FORM ĐÃ RESET
+        expect(screen.getByText("Thêm Sản Phẩm")).toBeInTheDocument(); // Form reset về chế độ Thêm
+        expect(screen.getByTestId("product-name")).toHaveValue(""); // Input rỗng
+    });
+    
+    // Kịch bản này sẽ cover các nhánh còn lại trong ProductPage.js
+  });
+
+  test("Coverage: Nên hủy chế độ SỬA khi nhấn nút 'Hủy Sửa'", async () => {
+    // SỬA: Bổ sung 'category'
+    const initialProduct = { id: 100, name: "SP Hủy", price: 1, quantity: 1, category: 'Test' };
+    
+    // Mock List (để sản phẩm xuất hiện)
+    getAllProducts.mockResolvedValueOnce({ data: { content: [initialProduct] } });
+    
+    render(<MemoryRouter><ProductPage /></MemoryRouter>);
+
+    // A. KÍCH HOẠT CHẾ ĐỘ SỬA
+    const editButton = await screen.findByTestId("edit-btn-100");
+    fireEvent.click(editButton);
+    
+    // Xác minh form đã vào chế độ Sửa
+    expect(screen.getByText("Sửa Sản Phẩm")).toBeInTheDocument(); 
+
+    // B. NHẤN NÚT HỦY SỬA (Nút này xuất hiện khi editingProduct có giá trị)
+    // SỬA LỖI 3: Dùng regex để khớp với nội dung có chứa ký tự đặc biệt (&larr; Hủy Sửa)
+    const cancelButton = screen.getByText(/Hủy Sửa/i);
+    fireEvent.click(cancelButton); 
+
+    // C. KIỂM TRA RESET VỀ CHẾ ĐỘ THÊM MỚI
+    expect(screen.getByText("Thêm Sản Phẩm")).toBeInTheDocument(); // Quay về Thêm Sản Phẩm
+    expect(screen.getByTestId("product-name")).toHaveValue(""); // Input rỗng
+    
+    // Test này sẽ kích hoạt và cover Lines 97-98
+  });
+
+  
 });

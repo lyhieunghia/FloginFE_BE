@@ -19,8 +19,8 @@ export const ProductForm = ({ onSubmit, productToEdit }) => {
         // Đảm bảo các trường không liên quan đến form (như id) vẫn được giữ
         ...productToEdit, 
         // Chuyển đổi giá trị số sang chuỗi để điền vào input type="number"
-        price: String(productToEdit.price || ''),
-        quantity: String(productToEdit.quantity || ''),
+        price: productToEdit.price != null ? String(productToEdit.price) : '',
+        quantity: productToEdit.quantity != null ? String(productToEdit.quantity) : '',
       });
       setErrors({}); 
     } else {
