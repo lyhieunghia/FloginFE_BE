@@ -5,6 +5,7 @@ import {
   screen,
   fireEvent,
   waitFor,
+  within, // THÊM within để tìm nút trong row
 } from "@testing-library/react";
 import "@testing-library/jest-dom";
 // SỬA LỖI: Import thêm MemoryRouter
@@ -15,8 +16,10 @@ import { ProductPage } from "../pages/ProductPage"; // Import component cần te
 import {
   getAllProducts,
   createProduct,
+  // BỔ SUNG updateProduct
+  updateProduct,
   deleteProduct,
-} from "../services/productService";
+} from "../services/productService"; // Cần import updateProduct
 
 // 1. Mock toàn bộ module 'productService'
 jest.mock("../services/productService");
@@ -25,7 +28,8 @@ describe("ProductPage Mock Tests (Req 5.2.1)", () => {
   
   beforeEach(() => {
     jest.clearAllMocks();
-    window.confirm = jest.fn(() => true);
+    // Giả lập window.confirm luôn trả về true (Đồng ý xóa)
+    window.confirm = jest.fn(() => true); 
   });
 
   test("Happy Path: Nên tải danh sách và thêm sản phẩm mới (Mocked)", async () => {
@@ -38,7 +42,6 @@ describe("ProductPage Mock Tests (Req 5.2.1)", () => {
       data: { content: mockData },
     });
 
-    // SỬA LỖI: Bọc component trong MemoryRouter
     render(
       <MemoryRouter>
         <ProductPage />
@@ -56,7 +59,7 @@ describe("ProductPage Mock Tests (Req 5.2.1)", () => {
     const updatedData = [...mockData, newProduct];
     
     createProduct.mockResolvedValueOnce({ data: newProduct });
-    getAllProducts.mockResolvedValueOnce({
+    getAllProducts.mockResolvedValueOnce({ // Mock lần gọi API thứ 2 (refresh list)
       data: { content: updatedData },
     });
     
@@ -82,12 +85,90 @@ describe("ProductPage Mock Tests (Req 5.2.1)", () => {
     expect(getAllProducts).toHaveBeenCalledTimes(2); 
   });
 
+  // --- BỔ SUNG: Test luồng XÓA (DELETE) ---
+  test("Happy Path: Nên xóa sản phẩm thành công (Mocked)", async () => {
+    const mockData = [
+      { id: 99, name: "Sản phẩm Sẽ Xóa", price: 100, quantity: 10, category: "Del" },
+    ];
+
+    getAllProducts.mockResolvedValueOnce({ data: { content: mockData } });
+    deleteProduct.mockResolvedValueOnce({}); // Mock: Xóa thành công
+    
+    // Mock: Lần gọi API thứ 2 (refresh list) trả về rỗng
+    getAllProducts.mockResolvedValueOnce({ data: { content: [] } }); 
+    
+    render(<MemoryRouter><ProductPage /></MemoryRouter>);
+
+    // 1. Tìm row và nút xóa
+    const productRow = await screen.findByRole("row", {
+      name: /Sản phẩm Sẽ Xóa/i,
+    });
+    const deleteButton = within(productRow).getByTestId(/delete-btn-99/);
+    
+    // 2. Click nút xóa
+    fireEvent.click(deleteButton);
+
+    // 3. Chờ thông báo thành công
+    expect(await screen.findByTestId("success-message")).toHaveTextContent(
+      "Xóa sản phẩm thành công!"
+    );
+    
+    // 4. Xác minh mock call và danh sách rỗng
+    expect(deleteProduct).toHaveBeenCalledWith(99);
+    expect(deleteProduct).toHaveBeenCalledTimes(1);
+    expect(await screen.findByText("Không có sản phẩm nào.")).toBeInTheDocument();
+  });
+
+  // --- BỔ SUNG: Test luồng SỬA (UPDATE) ---
+  test("Happy Path: Nên sửa sản phẩm và cập nhật danh sách (Mocked)", async () => {
+    const initialProduct = { id: 5, name: "Laptop Cũ", price: 1000, quantity: 1, category: "Old" };
+    const updatedProduct = { id: 5, name: "Laptop Mới", price: 1500, quantity: 2, category: "New" };
+    
+    getAllProducts.mockResolvedValueOnce({ data: { content: [initialProduct] } });
+    updateProduct.mockResolvedValueOnce({ data: updatedProduct });
+    
+    // Mock: Lần gọi API thứ 2 (refresh list) trả về sản phẩm đã sửa
+    getAllProducts.mockResolvedValueOnce({ data: { content: [updatedProduct] } });
+    
+    render(<MemoryRouter><ProductPage /></MemoryRouter>);
+
+    // 1. Tìm row và nút sửa
+    const productRow = await screen.findByRole("row", { name: /Laptop Cũ/i });
+    const editButton = within(productRow).getByTestId(/edit-btn-5/);
+
+    // 2. Click nút sửa
+    fireEvent.click(editButton);
+
+    // 3. Form hiển thị chế độ Sửa và điền dữ liệu cũ
+    expect(screen.getByText("Sửa Sản Phẩm")).toBeInTheDocument();
+    expect(screen.getByTestId("product-name")).toHaveValue("Laptop Cũ");
+    expect(screen.getByTestId("submit-button")).toHaveTextContent("Cập nhật");
+
+    // 4. Sửa dữ liệu
+    fireEvent.change(screen.getByTestId("product-name"), { target: { value: "Laptop Mới" } });
+    fireEvent.change(screen.getByTestId("product-price"), { target: { value: 1500 } });
+
+    // 5. Submit
+    fireEvent.click(screen.getByTestId("submit-button"));
+
+    // 6. Chờ thông báo thành công
+    expect(await screen.findByTestId("success-message")).toHaveTextContent(
+      "Cập nhật sản phẩm thành công!"
+    );
+    
+    // 7. Xác minh mock call và danh sách cập nhật
+    expect(updateProduct).toHaveBeenCalledTimes(1);
+    expect(updateProduct).toHaveBeenCalledWith(5, expect.objectContaining({ name: "Laptop Mới" }));
+    expect(await screen.findByText("Laptop Mới")).toBeInTheDocument();
+  });
+
+  // --- SAD PATHS CŨ (Giữ nguyên) ---
+
   test("Sad Path: Nên hiển thị lỗi khi tải danh sách thất bại (Mocked)", async () => {
     getAllProducts.mockRejectedValueOnce(
       new Error("Network Error 500")
     );
     
-    // SỬA LỖI: Bọc component trong MemoryRouter
     render(
       <MemoryRouter>
         <ProductPage />
@@ -107,7 +188,6 @@ describe("ProductPage Mock Tests (Req 5.2.1)", () => {
       data: { content: [] },
     });
     
-    // SỬA LỖI: Bọc component trong MemoryRouter
     render(
       <MemoryRouter>
         <ProductPage />

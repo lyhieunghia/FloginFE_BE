@@ -91,14 +91,15 @@ describe("App Component Integration Tests (Req 4.2.1)", () => {
         <App />
       </BrowserRouter>
     );
+    // 1. TẠO SẢN PHẨM MỚI (Dùng API thật)
     fireEvent.change(screen.getByTestId("product-name"), {
       target: { value: "Sản phẩm Sẽ Được Sửa" },
     });
     fireEvent.change(screen.getByTestId("product-price"), {
-      target: { value: 2 },
+      target: { value: 100 },
     });
     fireEvent.change(screen.getByTestId("product-quantity"), {
-      target: { value: 2 },
+      target: { value: 10 },
     });
     fireEvent.change(screen.getByTestId("product-category"), {
       target: { value: "Edit" },
@@ -106,20 +107,36 @@ describe("App Component Integration Tests (Req 4.2.1)", () => {
     fireEvent.click(screen.getByTestId("submit-button"));
     await screen.findByText("Thêm sản phẩm thành công!");
 
-    const productCell = await screen.findByText("Sản phẩm Sẽ Được Sửa");
     const productRow = await screen.findByRole("row", {
       name: /Sản phẩm sẽ được sửa/i,
     });
-
-    // Tìm button Sửa dựa trên testid (ví dụ: edit-btn-1)
     const editButton = within(productRow).getByTestId(/edit-btn-/);
-    fireEvent.click(editButton);
 
-    await waitFor(() => {
-      expect(window.alert).toHaveBeenCalledWith(
-        "Chức năng Sửa cho sản phẩm: Sản phẩm Sẽ Được Sửa (chưa cài đặt)"
-      );
+    // 2. CLICK NÚT SỬA
+    fireEvent.click(editButton);
+    
+    // 3. KIỂM TRA FORM ĐÃ ĐƯỢC ĐIỀN DỮ LIỆU
+    expect(await screen.findByTestId("product-name")).toHaveValue("Sản phẩm Sẽ Được Sửa");
+    expect(screen.getByTestId("submit-button")).toHaveTextContent("Cập nhật");
+    
+    // 4. THAY ĐỔI DỮ LIỆU VÀ SUBMIT
+    fireEvent.change(screen.getByTestId("product-price"), {
+      target: { value: 999 }, // Đổi giá thành 999
     });
+    fireEvent.click(screen.getByTestId("submit-button"));
+
+    // 5. KIỂM TRA KẾT QUẢ CẬP NHẬT
+    expect(await screen.findByText("Cập nhật sản phẩm thành công!")).toBeInTheDocument();
+    
+    // Kiểm tra danh sách cập nhật (dòng có giá mới 999)
+    const updatedRow = await screen.findByRole("row", {
+      name: /Sản phẩm sẽ được sửa 999/i,
+    });
+    expect(updatedRow).toBeInTheDocument();
+    
+    // 6. KIỂM TRA FORM ĐÃ RESET VỀ CHẾ ĐỘ THÊM MỚI
+    expect(screen.getByTestId("submit-button")).toHaveTextContent("Lưu");
+    expect(screen.getByTestId("product-name")).toHaveValue("");
   });
 
   // Test 4: Yêu cầu 4.2.1(a) - Luồng Xóa

@@ -7,3 +7,6 @@ import '@testing-library/jest-dom';
 // Thêm 2 dòng này để sửa lỗi CORS của JSDOM
 import axios from 'axios';
 axios.defaults.adapter = 'http';
+
+// Khắc phục lỗi JSDOM không hỗ trợ window.scrollTo
+window.scrollTo = jest.fn();

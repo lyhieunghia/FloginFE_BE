@@ -1,7 +1,4 @@
 // src/pages/ProductPage.js
-// Đây là file đã được cập nhật giao diện với Bootstrap
-
-
 import React, { useState, useEffect } from 'react';
 import { ProductList } from '../components/ProductList';
 import { ProductForm } from '../components/ProductForm';
@@ -10,6 +7,9 @@ import * as productService from '../services/productService';
 export const ProductPage = () => {
   const [products, setProducts] = useState([]);
   const [message, setMessage] = useState('');
+
+  // SỬA: State để lưu sản phẩm đang được chỉnh sửa
+  const [editingProduct, setEditingProduct] = useState(null);
 
   const fetchProducts = () => {
     productService.getAllProducts()
@@ -33,16 +33,46 @@ export const ProductPage = () => {
     fetchProducts();
   }, []); 
 
-  const handleAddProduct = (product) => {
-    productService.createProduct(product)
-      .then(response => {
-        setMessage('Thêm sản phẩm thành công!');
-        fetchProducts(); // Tải lại toàn bộ danh sách
-      })
-      .catch(error => {
-        setMessage('Lỗi khi thêm sản phẩm');
-        console.error(error);
-      });
+  // SỬA: HÀM SUBMIT CHUNG CHO CẢ CREATE VÀ UPDATE
+  const handleFormSubmit = (product) => {
+    if (editingProduct) {
+      // --- LOGIC CẬP NHẬT (UPDATE) ---
+      // Gọi service updateProduct (sử dụng ID từ editingProduct)
+      productService.updateProduct(editingProduct.id, product)
+        .then(() => {
+          setMessage('Cập nhật sản phẩm thành công!');
+          fetchProducts(); // Tải lại danh sách
+          setEditingProduct(null); // Rất quan trọng: Reset form về chế độ Thêm mới
+        })
+        .catch(error => {
+          setMessage('Lỗi khi cập nhật sản phẩm');
+          console.error(error);
+        });
+
+    } else {
+      // --- LOGIC THÊM MỚI (CREATE) ---
+      productService.createProduct(product)
+        .then(() => {
+          setMessage('Thêm sản phẩm thành công!');
+          fetchProducts(); // Tải lại danh sách
+          setEditingProduct(null); // Rất quan trọng: Reset form sau khi thêm mới
+        })
+        .catch(error => {
+          setMessage('Lỗi khi thêm sản phẩm');
+          console.error(error);
+        });
+    }
+  };
+
+  // SỬA: HÀM XỬ LÝ KHI NHẤN NÚT SỬA
+  const handleEditProduct = (product) => {
+    console.log('Chuẩn bị sửa:', product);
+    setEditingProduct(product); // Set sản phẩm vào state
+    
+    // Cuộn lên đầu trang để người dùng có thể thấy form
+    // Giả định bạn đã cài 'scroll-to-element' hoặc dùng window.scrollTo
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setMessage(''); // Xóa thông báo cũ
   };
 
   const handleDeleteProduct = (id) => {
@@ -51,6 +81,9 @@ export const ProductPage = () => {
         .then(() => {
           setMessage('Xóa sản phẩm thành công!');
           fetchProducts(); // Tải lại toàn bộ danh sách
+          if (editingProduct && editingProduct.id === id) {
+             setEditingProduct(null); // Nếu xóa sản phẩm đang sửa, reset form
+          }
         })
         .catch(error => {
           setMessage('Lỗi khi xóa sản phẩm');
@@ -59,19 +92,19 @@ export const ProductPage = () => {
     }
   };
   
-  const handleEditProduct = (product) => {
-    console.log('Chuẩn bị sửa:', product);
-    alert(`Chức năng Sửa cho sản phẩm: ${product.name} (chưa cài đặt)`);
+  // Nút Hủy Sửa (Tùy chọn)
+  const handleCancelEdit = () => {
+      setEditingProduct(null);
+      setMessage('');
   };
 
-  // --- Cập nhật giao diện (UI) với Bootstrap ---
+
   return (
     <main className="container">
       {/* Thông báo (Alerts) */}
       {message && (
         <div 
           data-testid="success-message" 
-          // Tự động đổi màu alert dựa trên nội dung message
           className={`alert ${message.includes('Lỗi') ? 'alert-danger' : 'alert-success'}`}
           role="alert"
         >
@@ -82,10 +115,27 @@ export const ProductPage = () => {
       {/* Bố cục 2 cột (Form và List) */}
       <div className="row g-5">
         
-        {/* Cột 1: Form Thêm Sản Phẩm */}
+        {/* Cột 1: Form Thêm/Sửa Sản Phẩm */}
         <div className="col-md-4">
-          <h2 className="h4">Thêm Sản Phẩm</h2>
-          <ProductForm onSubmit={handleAddProduct} />
+          <h2 className="h4">
+            {editingProduct ? 'Sửa Sản Phẩm' : 'Thêm Sản Phẩm'}
+          </h2>
+          
+          {/* Nút Hủy Sửa */}
+          {editingProduct && (
+            <button 
+                onClick={handleCancelEdit}
+                className="btn btn-sm btn-outline-secondary mb-3 w-100"
+            >
+                &larr; Hủy Sửa
+            </button>
+          )}
+
+          {/* SỬA: TRUYỀN HÀM CHUNG VÀ SẢN PHẨM ĐANG SỬA */}
+          <ProductForm 
+            onSubmit={handleFormSubmit} 
+            productToEdit={editingProduct} 
+          />
         </div>
 
         {/* Cột 2: Danh Sách Sản Phẩm */}

@@ -1,11 +1,9 @@
 // src/components/ProductForm.js
-// Đây là file đã được cập nhật giao diện với Bootstrap
 
-import React, { useState } from "react";
-// Giả định bạn có file validation này tại /utils/productValidation.js
+import React, { useState, useEffect } from "react";
 import { validateProduct } from "../utils/productValidation";
 
-export const ProductForm = ({ onSubmit }) => {
+export const ProductForm = ({ onSubmit, productToEdit }) => {
   const [product, setProduct] = useState({
     name: "",
     price: "",
@@ -14,6 +12,28 @@ export const ProductForm = ({ onSubmit }) => {
     category: "",
   });
   const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    if (productToEdit) {
+      setProduct({
+        // Đảm bảo các trường không liên quan đến form (như id) vẫn được giữ
+        ...productToEdit, 
+        // Chuyển đổi giá trị số sang chuỗi để điền vào input type="number"
+        price: String(productToEdit.price || ''),
+        quantity: String(productToEdit.quantity || ''),
+      });
+      setErrors({}); 
+    } else {
+      setProduct({
+        name: "",
+        price: "",
+        quantity: "",
+        description: "",
+        category: "",
+      });
+      setErrors({}); 
+    }
+  }, [productToEdit]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -26,15 +46,22 @@ export const ProductForm = ({ onSubmit }) => {
     setErrors(validationErrors);
 
     if (Object.keys(validationErrors).length === 0) {
-      onSubmit(product);
-      // Cải tiến: Xóa form sau khi submit thành công
-      setProduct({ name: "", price: "", quantity: "", description: "", category: "" });
+
+      // 1. Chuyển đổi dữ liệu (từ string sang number)
+      const finalProduct = {
+          ...product,
+          price: Number(product.price),
+          quantity: Number(product.quantity),
+      };
+      
+      // 2. 🟢 SỬA LỖI QUAN TRỌNG: Gọi onSubmit với dữ liệu đã chuyển đổi (finalProduct)
+      onSubmit(finalProduct); 
     }
   };
 
   // --- Cập nhật giao diện (UI) với Bootstrap ---
   return (
-    // Bọc form trong card để trực quan hơn
+    // ... (Phần JSX giữ nguyên, vì nó đã đúng) ...
     <div className="card shadow-sm">
       <div className="card-body">
         <form onSubmit={handleSubmit}>
@@ -64,7 +91,7 @@ export const ProductForm = ({ onSubmit }) => {
               id="price"
               name="price"
               type="number"
-              value={product.price}
+              value={product.price || ''} 
               onChange={handleChange}
               data-testid="product-price"
               className={`form-control ${errors.price ? 'is-invalid' : ''}`}
@@ -83,7 +110,7 @@ export const ProductForm = ({ onSubmit }) => {
               id="quantity"
               name="quantity"
               type="number"
-              value={product.quantity}
+              value={product.quantity || ''}
               onChange={handleChange}
               data-testid="product-quantity"
               className={`form-control ${errors.quantity ? 'is-invalid' : ''}`}
@@ -115,11 +142,10 @@ export const ProductForm = ({ onSubmit }) => {
           
           {/* Nút Submit */}
           <button type="submit" data-testid="submit-button" className="btn btn-primary w-100">
-            Lưu
+            {productToEdit ? 'Cập nhật' : 'Lưu'}
           </button>
         </form>
       </div>
     </div>
   );
 };
-

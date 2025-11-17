@@ -1,6 +1,6 @@
 import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import "@testing-library/jest-dom"; // (Bạn cần cài @testing-library/jest-dom )
+import { render, screen, fireEvent, waitFor, rerender } from "@testing-library/react"; 
+import "@testing-library/jest-dom";
 import { ProductForm } from "../components/ProductForm";
 import * as Validation from "../utils/productValidation";
 
@@ -14,6 +14,8 @@ describe("ProductForm Component Unit Test", () => {
     mockValidateProduct.mockClear();
     mockOnSubmit.mockClear();
   });
+
+  // --- TEST CASE CŨ (Giữ nguyên) ---
 
   test("Hiển thị lỗi validation khi submit form với dữ liệu không hợp lệ", async () => {
     // Giả lập hàm validate trả về lỗi
@@ -31,10 +33,9 @@ describe("ProductForm Component Unit Test", () => {
     fireEvent.click(submitButton);
 
     // Assert:
-    // 1. Hàm validate được gọi
     expect(mockValidateProduct).toHaveBeenCalledTimes(1);
 
-    // 2. Các thông báo lỗi được hiển thị
+    // Các thông báo lỗi được hiển thị
     expect(await screen.findByTestId("error-name")).toHaveTextContent(
       "Tên sản phẩm không được để trống"
     );
@@ -45,10 +46,10 @@ describe("ProductForm Component Unit Test", () => {
       "Danh mục không được để trống"
     );
     expect(await screen.findByTestId("error-quantity")).toHaveTextContent(
-    "Số lượng không hợp lệ"
-  );
+      "Số lượng không hợp lệ"
+    );
 
-    // 3. Hàm onSubmit không được gọi
+    // Hàm onSubmit không được gọi
     expect(mockOnSubmit).not.toHaveBeenCalled();
   });
 
@@ -63,10 +64,10 @@ describe("ProductForm Component Unit Test", () => {
       target: { value: "Laptop" },
     });
     fireEvent.change(screen.getByTestId("product-price"), {
-      target: { value: "20000" },
+      target: { value: "20000" }, // Input giá trị chuỗi
     });
     fireEvent.change(screen.getByTestId("product-quantity"), {
-      target: { value: "10" },
+      target: { value: "10" }, // Input giá trị chuỗi
     });
     fireEvent.change(screen.getByTestId("product-category"), {
       target: { value: "Tech" },
@@ -77,16 +78,95 @@ describe("ProductForm Component Unit Test", () => {
     fireEvent.click(submitButton);
 
     // Assert:
-    // 1. Hàm validate được gọi
     expect(mockValidateProduct).toHaveBeenCalledTimes(1);
 
-    // 2. Không có thông báo lỗi
-    expect(screen.queryByTestId("error-name")).toBeNull();
-    expect(screen.queryByTestId("error-price")).toBeNull();
-
-    // 3. Hàm onSubmit được gọi 1 lần
+    // Hàm onSubmit được gọi 1 lần
     await waitFor(() => {
-      expect(mockOnSubmit).toHaveBeenCalledTimes(1);
+      // 🟢 SỬA LỖI TẠI ĐÂY: Mong đợi giá trị là SỐ sau khi chuyển đổi trong handleSubmit
+      expect(mockOnSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: "Laptop",
+          price: 20000, // Mong đợi số
+          quantity: 10,  // Mong đợi số
+          category: "Tech",
+        })
+      );
+    });
+  });
+
+  // --- TEST CASE MỚI CHO CHỨC NĂNG SỬA (UPDATE) ---
+
+  test("Nên hiển thị dữ liệu sản phẩm và đổi nút thành 'Cập nhật' khi ở chế độ Sửa", () => {
+    const mockProduct = {
+      id: 5,
+      name: "Smartphone X",
+      price: 10000000,
+      quantity: 50,
+      description: "Mô tả cũ",
+      category: "Mobile",
+    };
+
+    // 1. Render component với prop productToEdit
+    const { rerender } = render(
+      <ProductForm onSubmit={mockOnSubmit} productToEdit={mockProduct} />
+    );
+
+    // Assert 1: Kiểm tra các input đã được điền đúng dữ liệu (chế độ Sửa)
+    expect(screen.getByTestId("product-name")).toHaveValue("Smartphone X");
+    expect(screen.getByTestId("product-price")).toHaveValue(10000000); // Input type="number" tự chuyển về số
+    expect(screen.getByTestId("product-quantity")).toHaveValue(50);
+    expect(screen.getByTestId("product-category")).toHaveValue("Mobile");
+    
+    // Assert 2: Kiểm tra nút submit hiển thị "Cập nhật"
+    expect(screen.getByTestId("submit-button")).toHaveTextContent("Cập nhật");
+
+    // Assert 3: Kiểm tra form reset khi productToEdit chuyển về null (kết thúc sửa)
+    rerender(<ProductForm onSubmit={mockOnSubmit} productToEdit={null} />);
+    
+    // Nút submit phải trở lại "Lưu"
+    expect(screen.getByTestId("submit-button")).toHaveTextContent("Lưu");
+    // Form phải rỗng
+    expect(screen.getByTestId("product-name")).toHaveValue("");
+  });
+  
+  test("Gọi hàm onSubmit khi SỬA dữ liệu hợp lệ", async () => {
+    mockValidateProduct.mockReturnValue({}); // Giả lập hợp lệ
+
+    const mockProduct = {
+      id: 5,
+      name: "Old Name",
+      price: 10,
+      quantity: 1,
+      category: "Test",
+    };
+
+    render(
+      <ProductForm onSubmit={mockOnSubmit} productToEdit={mockProduct} />
+    );
+    
+    // Action: Thay đổi một trường
+    fireEvent.change(screen.getByTestId("product-name"), {
+      target: { value: "New Name" },
+    });
+
+    // Click submit (Nút phải là Cập nhật)
+    fireEvent.click(screen.getByText("Cập nhật"));
+
+    // Assert:
+    expect(mockValidateProduct).toHaveBeenCalledTimes(1);
+
+    // Kiểm tra onSubmit được gọi với DỮ LIỆU ĐÃ CHỈNH SỬA (và đã chuyển sang SỐ)
+    await waitFor(() => {
+      expect(mockOnSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 5,
+          name: "New Name",
+          // 🟢 SỬA TẠI ĐÂY: Mong đợi giá trị là SỐ
+          price: 10, 
+          quantity: 1,
+          category: "Test",
+        })
+      );
     });
   });
 });
