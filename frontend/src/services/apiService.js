@@ -1,44 +1,45 @@
-/**
- * API Service for handling authentication
- * This file provides a clean interface for API calls
- */
+import axios from 'axios';
 
-// Sử dụng relative path - React proxy sẽ tự động forward đến backend
-const API_BASE_URL = '';
+const API_BASE_URL = 'http://localhost:8080';
 
 /**
- * Login API call
+ * Login API call using Axios
  * @param {string} username 
  * @param {string} password 
  * @returns {Promise<{success: boolean, message?: string, token?: string, user?: object}>}
  */
 export const loginApi = async (username, password) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ username, password }),
+    const response = await axios.post(`${API_BASE_URL}/api/auth/login`, {
+      username,
+      password
     });
 
-    const data = await response.json();
+    // Axios tự động throw error nếu status >= 400, nên đây là thành công
+    const data = response.data;
 
-    if (response.ok) {
-      return {
-        success: true,
-        message: data.message || 'thanh cong',
-        token: data.token,
-        user: data.user,
-      };
-    } else {
+    return {
+      success: true,
+      message: data.message || 'thanh cong',
+      token: data.token,
+      user: data.user,
+    };
+  } catch (error) {
+    // Xử lý lỗi: 401, network, ...
+    if (error.response) {
+      // Response từ backend (status code != 2xx)
+      const data = error.response.data;
       return {
         success: false,
         message: data.message || 'sai thong tin',
       };
+    } else {
+      // Network error hoặc không có response
+      return {
+        success: false,
+        message: 'Network error, please try again',
+      };
     }
-  } catch (error) {
-    throw new Error('Network error, please try again');
   }
 };
 
@@ -49,7 +50,6 @@ export const loginApi = async (username, password) => {
  * @returns {Promise<{success: boolean, message?: string, token?: string, user?: object}>}
  */
 export const mockLoginApi = async (username, password) => {
-  // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 500));
 
   if (username === 'testuser' && password === 'Test123') {
@@ -58,7 +58,7 @@ export const mockLoginApi = async (username, password) => {
       message: 'thanh cong',
       token: 'fake-token-123',
       user: {
-        username: username,
+        username,
         email: `${username}@example.com`,
       },
     };
@@ -69,4 +69,3 @@ export const mockLoginApi = async (username, password) => {
     message: 'sai thong tin',
   };
 };
-

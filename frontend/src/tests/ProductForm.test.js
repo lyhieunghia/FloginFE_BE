@@ -1,92 +1,151 @@
-import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import "@testing-library/jest-dom"; // (Bạn cần cài @testing-library/jest-dom )
-import { ProductForm } from "../components/ProductForm";
-import * as Validation from "../utils/productValidation";
+// src/components/ProductForm.js
 
-// Mock hàm validateProduct
-const mockValidateProduct = jest.spyOn(Validation, "validateProduct");
+import React, { useState, useEffect } from "react";
+import { validateProduct } from "../utils/productValidation";
 
-describe("ProductForm Component Unit Test", () => {
-  const mockOnSubmit = jest.fn();
-
-  beforeEach(() => {
-    mockValidateProduct.mockClear();
-    mockOnSubmit.mockClear();
+export const ProductForm = ({ onSubmit, productToEdit }) => {
+  const [product, setProduct] = useState({
+    name: "",
+    price: "",
+    quantity: "",
+    description: "",
+    category: "",
   });
+  const [errors, setErrors] = useState({});
 
-  test("Hiển thị lỗi validation khi submit form với dữ liệu không hợp lệ", async () => {
-    // Giả lập hàm validate trả về lỗi
-    mockValidateProduct.mockReturnValue({
-      name: "Tên sản phẩm không được để trống",
-      price: "Giá sản phẩm phải lớn hơn 0",
-      category: "Danh mục không được để trống",
-      quantity: "Số lượng không hợp lệ",
-    });
+  useEffect(() => {
+    if (productToEdit) {
+      setProduct({
+        // Đảm bảo các trường không liên quan đến form (như id) vẫn được giữ
+        ...productToEdit, 
+        // Chuyển đổi giá trị số sang chuỗi để điền vào input type="number"
+        price: productToEdit.price != null ? String(productToEdit.price) : '',
+        quantity: productToEdit.quantity != null ? String(productToEdit.quantity) : '',
+      });
+      setErrors({}); 
+    } else {
+      setProduct({
+        name: "",
+        price: "",
+        quantity: "",
+        description: "",
+        category: "",
+      });
+      setErrors({}); 
+    }
+  }, [productToEdit]);
 
-    render(<ProductForm onSubmit={mockOnSubmit} />);
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setProduct((prev) => ({ ...prev, [name]: value }));
+  };
 
-    // Action: Click nút submit
-    const submitButton = screen.getByTestId("submit-button");
-    fireEvent.click(submitButton);
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const validationErrors = validateProduct(product);
+    setErrors(validationErrors);
 
-    // Assert:
-    // 1. Hàm validate được gọi
-    expect(mockValidateProduct).toHaveBeenCalledTimes(1);
+    if (Object.keys(validationErrors).length === 0) {
 
-    // 2. Các thông báo lỗi được hiển thị
-    expect(await screen.findByTestId("error-name")).toHaveTextContent(
-      "Tên sản phẩm không được để trống"
-    );
-    expect(await screen.findByTestId("error-price")).toHaveTextContent(
-      "Giá sản phẩm phải lớn hơn 0"
-    );
-    expect(await screen.findByTestId("error-category")).toHaveTextContent(
-      "Danh mục không được để trống"
-    );
-    expect(await screen.findByTestId("error-quantity")).toHaveTextContent(
-    "Số lượng không hợp lệ"
+      // 1. Chuyển đổi dữ liệu (từ string sang number)
+      const finalProduct = {
+          ...product,
+          price: Number(product.price),
+          quantity: Number(product.quantity),
+      };
+      
+      // 2. 🟢 SỬA LỖI QUAN TRỌNG: Gọi onSubmit với dữ liệu đã chuyển đổi (finalProduct)
+      onSubmit(finalProduct); 
+    }
+  };
+
+  // --- Cập nhật giao diện (UI) với Bootstrap ---
+  return (
+    // ... (Phần JSX giữ nguyên, vì nó đã đúng) ...
+    <div className="card shadow-sm">
+      <div className="card-body">
+        <form onSubmit={handleSubmit}>
+          
+          {/* Trường Tên sản phẩm */}
+          <div className="mb-3">
+            <label htmlFor="name" className="form-label">Tên sản phẩm:</label>
+            <input
+              id="name"
+              name="name"
+              value={product.name}
+              onChange={handleChange}
+              data-testid="product-name"
+              className={`form-control ${errors.name ? 'is-invalid' : ''}`}
+            />
+            {errors.name && 
+              <div data-testid="error-name" className="invalid-feedback">
+                {errors.name}
+              </div>
+            }
+          </div>
+          
+          {/* Trường Giá */}
+          <div className="mb-3">
+            <label htmlFor="price" className="form-label">Giá:</label>
+            <input
+              id="price"
+              name="price"
+              type="number"
+              value={product.price || ''} 
+              onChange={handleChange}
+              data-testid="product-price"
+              className={`form-control ${errors.price ? 'is-invalid' : ''}`}
+            />
+            {errors.price && 
+              <div data-testid="error-price" className="invalid-feedback">
+                {errors.price}
+              </div>
+            }
+          </div>
+          
+          {/* Trường Số lượng */}
+          <div className="mb-3">
+            <label htmlFor="quantity" className="form-label">Số lượng:</label>
+            <input
+              id="quantity"
+              name="quantity"
+              type="number"
+              value={product.quantity || ''}
+              onChange={handleChange}
+              data-testid="product-quantity"
+              className={`form-control ${errors.quantity ? 'is-invalid' : ''}`}
+            />
+            {errors.quantity && (
+              <div data-testid="error-quantity" className="invalid-feedback">
+                {errors.quantity}
+              </div>
+            )}
+          </div>
+          
+          {/* Trường Danh mục */}
+          <div className="mb-3">
+            <label htmlFor="category" className="form-label">Danh mục:</label>
+            <input
+              id="category"
+              name="category"
+              value={product.category}
+              onChange={handleChange}
+              data-testid="product-category"
+              className={`form-control ${errors.category ? 'is-invalid' : ''}`}
+            />
+            {errors.category && (
+              <div data-testid="error-category" className="invalid-feedback">
+                {errors.category}
+              </div>
+            )}
+          </div>
+          
+          {/* Nút Submit */}
+          <button type="submit" data-testid="submit-button" className="btn btn-primary w-100">
+            {productToEdit ? 'Cập nhật' : 'Lưu'}
+          </button>
+        </form>
+      </div>
+    </div>
   );
-
-    // 3. Hàm onSubmit không được gọi
-    expect(mockOnSubmit).not.toHaveBeenCalled();
-  });
-
-  test("Gọi hàm onSubmit khi dữ liệu hợp lệ", async () => {
-    // Giả lập hàm validate không trả về lỗi
-    mockValidateProduct.mockReturnValue({});
-
-    render(<ProductForm onSubmit={mockOnSubmit} />);
-
-    // Action: Nhập dữ liệu (giả lập là hợp lệ)
-    fireEvent.change(screen.getByTestId("product-name"), {
-      target: { value: "Laptop" },
-    });
-    fireEvent.change(screen.getByTestId("product-price"), {
-      target: { value: "20000" },
-    });
-    fireEvent.change(screen.getByTestId("product-quantity"), {
-      target: { value: "10" },
-    });
-    fireEvent.change(screen.getByTestId("product-category"), {
-      target: { value: "Tech" },
-    });
-
-    // Click submit
-    const submitButton = screen.getByTestId("submit-button");
-    fireEvent.click(submitButton);
-
-    // Assert:
-    // 1. Hàm validate được gọi
-    expect(mockValidateProduct).toHaveBeenCalledTimes(1);
-
-    // 2. Không có thông báo lỗi
-    expect(screen.queryByTestId("error-name")).toBeNull();
-    expect(screen.queryByTestId("error-price")).toBeNull();
-
-    // 3. Hàm onSubmit được gọi 1 lần
-    await waitFor(() => {
-      expect(mockOnSubmit).toHaveBeenCalledTimes(1);
-    });
-  });
-});
+};

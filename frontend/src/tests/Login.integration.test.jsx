@@ -1,17 +1,3 @@
-<<<<<<< Updated upstream
-// src/__tests__/Login.integration.test.jsx
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import Login from '../components/Login';
-
-// Giả định Login có các data-testid:
-// 'username-input', 'password-input', 'login-button',
-// 'username-error' (hoặc 'password-error'), 'login-message'
-
-describe('Login Component Integration Tests', () => {
-  // a) Test rendering & user interactions
-  test('Hiển thị lỗi khi submit form rỗng', async () => {
-    render(<Login useMockApi={true} />);
-=======
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import Login from '../components/Login';
 
@@ -29,25 +15,11 @@ describe('Login Component Integration Tests', () => {
   
   test('Hiển thị lỗi khi submit form rỗng', async () => {
     render(<Login />);
->>>>>>> Stashed changes
 
     const submitButton = screen.getByTestId('login-button');
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-<<<<<<< Updated upstream
-      // Kiểm tra thông điệp lỗi xuất hiện
-      expect(screen.getByTestId('username-error')).toBeInTheDocument();
-      // Nếu có password-error thì kiểm luôn:
-      // expect(screen.getByTestId('password-error')).toBeInTheDocument();
-    });
-  });
-
-  // b) Test submit hợp lệ & gọi API (success 200)
-  test('Gọi API khi submit form hợp lệ và hiển thị success message', async () => {
-    // MSW handler: trả về success
-    render(<Login useMockApi={true} />);
-=======
       expect(screen.getByTestId('username-error')).toBeInTheDocument();
     });
   });
@@ -55,7 +27,7 @@ describe('Login Component Integration Tests', () => {
   test('Hiển thị form đăng nhập với đầy đủ các trường', () => {
     render(<Login />);
 
-    // Kiểm tra các elements render đúng
+    // Kiểm tra các elements render đúngnpm
     expect(screen.getByTestId('username-input')).toBeInTheDocument();
     expect(screen.getByTestId('password-input')).toBeInTheDocument();
     expect(screen.getByTestId('login-button')).toBeInTheDocument();
@@ -110,7 +82,6 @@ describe('Login Component Integration Tests', () => {
 
   test('Gọi API khi submit form hợp lệ', async () => {
     render(<Login />);
->>>>>>> Stashed changes
 
     const usernameInput = screen.getByTestId('username-input');
     const passwordInput = screen.getByTestId('password-input');
@@ -121,23 +92,6 @@ describe('Login Component Integration Tests', () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-<<<<<<< Updated upstream
-      expect(screen.getByTestId('login-message')).toHaveTextContent('dang nhap thanh cong');
-    });
-  });
-
-  // c) Test error handling (401)
-  test('Hiển thị lỗi khi API trả về 401', async () => {
-    render(<Login useMockApi={true} />);
-
-    fireEvent.change(screen.getByTestId('username-input'), {
-      target: { value: 'wrong' },
-    });
-    fireEvent.change(screen.getByTestId('password-input'), {
-      target: { value: 'wrong' },
-    });
-    fireEvent.click(screen.getByTestId('login-button'));
-=======
       expect(screen.getByTestId('login-message')).toHaveTextContent('thanh cong');
     });
   });
@@ -268,30 +222,10 @@ describe('Login Component Integration Tests', () => {
     fireEvent.change(usernameInput, { target: { value: 'wrong' } });
     fireEvent.change(passwordInput, { target: { value: 'wrong123' } });
     fireEvent.click(submitButton);
->>>>>>> Stashed changes
 
     await waitFor(() => {
       expect(screen.getByTestId('login-message')).toHaveTextContent('sai thong tin');
     });
-<<<<<<< Updated upstream
-  });
-
-  // c) Test network error (fetch/axios throw)
-  test('Hiển thị lỗi khi mạng lỗi (Network error)', async () => {
-    render(<Login useMockApi={true} />);
-
-    fireEvent.change(screen.getByTestId('username-input'), {
-      target: { value: 'any' },
-    });
-    fireEvent.change(screen.getByTestId('password-input'), {
-      target: { value: 'any' },
-    });
-    fireEvent.click(screen.getByTestId('login-button'));
-
-    await waitFor(() => {
-      // Tuỳ thông điệp lỗi trong component
-      expect(screen.getByTestId('login-message')).toHaveTextContent(/network|kết nối/i);
-=======
 
     // Submit lần 2 với đúng thông tin
     fireEvent.change(usernameInput, { target: { value: 'testuser' } });
@@ -329,7 +263,6 @@ describe('Login Component Integration Tests', () => {
     await waitFor(() => {
       expect(customMockApi).toHaveBeenCalledWith('testuser', 'Test123');
       expect(screen.getByTestId('login-message')).toHaveTextContent('custom success');
->>>>>>> Stashed changes
     });
   });
 });
