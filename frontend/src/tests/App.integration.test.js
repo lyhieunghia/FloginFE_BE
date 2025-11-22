@@ -6,7 +6,7 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
-import { BrowserRouter } from "react-router-dom";
+import { MemoryRouter } from "react-router-dom";
 import "@testing-library/jest-dom";
 import App from "../App"; // Test từ App (file router)
 import axios from "axios";
@@ -27,7 +27,6 @@ describe("App Component Integration Tests (Req 4.2.1)", () => {
     // Mock các hàm của window
     window.confirm = jest.fn(() => true);
     window.alert = jest.fn();
-    window.history.pushState({}, "Test page", "/");
   });
 
   afterEach(() => {
@@ -43,9 +42,9 @@ describe("App Component Integration Tests (Req 4.2.1)", () => {
   // Test 1: Yêu cầu 4.2.1(a) - Tải danh sách rỗng
   test("Req 4.2.1(a): Nên tải và hiển thị danh sách (rỗng) từ API", async () => {
     render(
-      <BrowserRouter>
+      <MemoryRouter initialEntries={["/"]}>
         <App />
-      </BrowserRouter>
+      </MemoryRouter>
     );
     expect(
       await screen.findByText("Không có sản phẩm nào.")
@@ -55,9 +54,9 @@ describe("App Component Integration Tests (Req 4.2.1)", () => {
   // Test 2: Yêu cầu 4.2.1(b) - Create
   test("Req 4.2.1(b) - Create: Nên tạo sản phẩm mới và cập nhật danh sách", async () => {
     render(
-      <BrowserRouter>
+      <MemoryRouter initialEntries={["/"]}>
         <App />
-      </BrowserRouter>
+      </MemoryRouter>
     );
     expect(
       await screen.findByText("Không có sản phẩm nào.")
@@ -86,18 +85,19 @@ describe("App Component Integration Tests (Req 4.2.1)", () => {
   // Test 3: Yêu cầu 4.2.1(b) - Edit
   test("Req 4.2.1(b) - Edit: Nên gọi hàm (alert) khi nhấn nút Sửa", async () => {
     render(
-      <BrowserRouter>
+      <MemoryRouter initialEntries={["/"]}>
         <App />
-      </BrowserRouter>
+      </MemoryRouter>
     );
+    // 1. TẠO SẢN PHẨM MỚI (Dùng API thật)
     fireEvent.change(screen.getByTestId("product-name"), {
       target: { value: "Sản phẩm Sẽ Được Sửa" },
     });
     fireEvent.change(screen.getByTestId("product-price"), {
-      target: { value: 2 },
+      target: { value: 100 },
     });
     fireEvent.change(screen.getByTestId("product-quantity"), {
-      target: { value: 2 },
+      target: { value: 10 },
     });
     fireEvent.change(screen.getByTestId("product-category"), {
       target: { value: "Edit" },
@@ -105,28 +105,44 @@ describe("App Component Integration Tests (Req 4.2.1)", () => {
     fireEvent.click(screen.getByTestId("submit-button"));
     await screen.findByText("Thêm sản phẩm thành công!");
 
-    const productCell = await screen.findByText("Sản phẩm Sẽ Được Sửa");
     const productRow = await screen.findByRole("row", {
       name: /Sản phẩm sẽ được sửa/i,
     });
-
-    // Tìm button Sửa dựa trên testid (ví dụ: edit-btn-1)
     const editButton = within(productRow).getByTestId(/edit-btn-/);
-    fireEvent.click(editButton);
 
-    await waitFor(() => {
-      expect(window.alert).toHaveBeenCalledWith(
-        "Chức năng Sửa cho sản phẩm: Sản phẩm Sẽ Được Sửa (chưa cài đặt)"
-      );
+    // 2. CLICK NÚT SỬA
+    fireEvent.click(editButton);
+    
+    // 3. KIỂM TRA FORM ĐÃ ĐƯỢC ĐIỀN DỮ LIỆU
+    expect(await screen.findByTestId("product-name")).toHaveValue("Sản phẩm Sẽ Được Sửa");
+    expect(screen.getByTestId("submit-button")).toHaveTextContent("Cập nhật");
+    
+    // 4. THAY ĐỔI DỮ LIỆU VÀ SUBMIT
+    fireEvent.change(screen.getByTestId("product-price"), {
+      target: { value: 999 }, // Đổi giá thành 999
     });
+    fireEvent.click(screen.getByTestId("submit-button"));
+
+    // 5. KIỂM TRA KẾT QUẢ CẬP NHẬT
+    expect(await screen.findByText("Cập nhật sản phẩm thành công!")).toBeInTheDocument();
+    
+    // Kiểm tra danh sách cập nhật (dòng có giá mới 999)
+    const updatedRow = await screen.findByRole("row", {
+      name: /Sản phẩm sẽ được sửa 999/i,
+    });
+    expect(updatedRow).toBeInTheDocument();
+    
+    // 6. KIỂM TRA FORM ĐÃ RESET VỀ CHẾ ĐỘ THÊM MỚI
+    expect(screen.getByTestId("submit-button")).toHaveTextContent("Lưu");
+    expect(screen.getByTestId("product-name")).toHaveValue("");
   });
 
   // Test 4: Yêu cầu 4.2.1(a) - Luồng Xóa
   test("Req 4.2.1(a) - Delete: Nên xóa sản phẩm khỏi danh sách", async () => {
     render(
-      <BrowserRouter>
+      <MemoryRouter initialEntries={["/"]}>
         <App />
-      </BrowserRouter>
+      </MemoryRouter>
     );
     fireEvent.change(screen.getByTestId("product-name"), {
       target: { value: "Sản phẩm Sẽ Bị Xóa" },
@@ -169,9 +185,9 @@ describe("App Component Integration Tests (Req 4.2.1)", () => {
   // Test 5: Yêu cầu 4.2.1(c) - Xem chi tiết
   test("Req 4.2.1(c): Nên hiển thị chi tiết sản phẩm khi click vào link", async () => {
     render(
-      <BrowserRouter>
+      <MemoryRouter initialEntries={["/"]}>
         <App />
-      </BrowserRouter>
+      </MemoryRouter>
     );
 
     // ----- PHẦN A: Thêm một sản phẩm (Dùng API thật) -----
@@ -205,7 +221,7 @@ describe("App Component Integration Tests (Req 4.2.1)", () => {
     expect(detailQty).toHaveTextContent("Số lượng: 7");
     const detailCat = await screen.findByTestId("product-detail-category");
     expect(detailCat).toHaveTextContent("Danh mục: Detail");
-    expect(screen.getByText("Quay về danh sách")).toBeInTheDocument();
+    expect(screen.getByText(/Quay về danh sách/)).toBeInTheDocument();
   });
 
   // =================================================================
@@ -220,9 +236,9 @@ describe("App Component Integration Tests (Req 4.2.1)", () => {
       .mockRejectedValueOnce(new Error("Network Error"));
 
     const { unmount } = render(
-      <BrowserRouter>
+      <MemoryRouter initialEntries={["/"]}>
         <App />
-      </BrowserRouter>
+      </MemoryRouter>
     );
 
     // Assert: Thông báo lỗi từ ProductPage.js (dòng 23) được hiển thị
@@ -255,9 +271,9 @@ describe("App Component Integration Tests (Req 4.2.1)", () => {
       .mockResolvedValueOnce({ data: paginatedData });
 
     render(
-      <BrowserRouter>
+      <MemoryRouter initialEntries={["/"]}>
         <App />
-      </BrowserRouter>
+      </MemoryRouter>
     );
 
     // Assert: Sản phẩm được hiển thị (chứng tỏ nhánh 16-17 đã chạy)
@@ -274,9 +290,9 @@ describe("App Component Integration Tests (Req 4.2.1)", () => {
       .mockRejectedValueOnce(new Error("Create Error"));
 
     render(
-      <BrowserRouter>
+      <MemoryRouter initialEntries={["/"]}>
         <App />
-      </BrowserRouter>
+      </MemoryRouter>
     );
     await screen.findByText("Không có sản phẩm nào."); // Đợi trang tải xong
 
@@ -324,9 +340,9 @@ describe("App Component Integration Tests (Req 4.2.1)", () => {
       .mockRejectedValueOnce(new Error("Delete Error"));
 
     render(
-      <BrowserRouter>
+      <MemoryRouter initialEntries={["/"]}>
         <App />
-      </BrowserRouter>
+      </MemoryRouter>
     );
 
     // Tìm sản phẩm và nút xóa của nó
@@ -371,9 +387,9 @@ describe("App Component Integration Tests (Req 4.2.1)", () => {
     getSpy.mockRejectedValueOnce(new Error("Not Found"));
 
     render(
-      <BrowserRouter>
+      <MemoryRouter initialEntries={["/"]}>
         <App />
-      </BrowserRouter>
+      </MemoryRouter>
     );
 
     // Action: Click vào link sản phẩm
@@ -390,9 +406,9 @@ describe("App Component Integration Tests (Req 4.2.1)", () => {
 
   test("Sad Path: Không nên xóa sản phẩm nếu người dùng nhấn 'Cancel'", async () => {
     render(
-      <BrowserRouter>
+      <MemoryRouter initialEntries={["/"]}>
         <App />
-      </BrowserRouter>
+      </MemoryRouter>
     );
     // 1. Tạo sản phẩm (dùng API thật)
     fireEvent.change(screen.getByTestId("product-name"), {
@@ -435,9 +451,9 @@ describe("App Component Integration Tests (Req 4.2.1)", () => {
       .mockResolvedValueOnce({ data: { message: "API trả về lỗi cấu trúc" } });
 
     render(
-      <BrowserRouter>
+      <MemoryRouter initialEntries={["/"]}>
         <App />
-      </BrowserRouter>
+      </MemoryRouter>
     );
     // Assert: Component nên xử lý lỗi này bằng cách hiển thị "Không có sản phẩm"
     // (Vì nhánh 'else' cuối cùng trả về [])
