@@ -1,99 +1,33 @@
-import React, { useState } from 'react';
-import './Login.css';
+import React from 'react';
+import './LoginForm.css';
 
 /**
- * Login Component với integration test support
- * Props:
- * - mockApi?: (username, password) => Promise<{ success: boolean, message?: string, token?: string }>
- * - onSuccess?: (token: string | undefined, payload: any) => void
+ * LoginForm - Presentation component for login UI
+ * 
+ * @param {Object} props
+ * @param {string} props.username - Current username value
+ * @param {string} props.password - Current password value
+ * @param {string} props.usernameError - Username validation error
+ * @param {string} props.passwordError - Password validation error
+ * @param {string} props.loginMessage - Login status message
+ * @param {boolean} props.isSuccess - Whether login was successful
+ * @param {boolean} props.loading - Whether form is submitting
+ * @param {Function} props.onUsernameChange - Username change handler
+ * @param {Function} props.onPasswordChange - Password change handler
+ * @param {Function} props.onSubmit - Form submit handler
  */
-export default function Login({ mockApi, onSuccess }) {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [usernameError, setUsernameError] = useState('');
-  const [passwordError, setPasswordError] = useState('');
-  const [loginMessage, setLoginMessage] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-
-  const builtinMockApi = async (u, p) => {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    if (u === 'testuser' && p === 'Test123') {
-      return {
-        success: true,
-        message: 'thanh cong',
-        token: 'fake-token-123',
-        user: { username: u, email: `${u}@example.com` }
-      };
-    }
-    return { success: false, message: 'sai thong tin' };
-  };
-
-  const validate = () => {
-    let isValid = true;
-    setUsernameError('');
-    setPasswordError('');
-
-    if (!username.trim()) {
-      setUsernameError('Username is required');
-      isValid = false;
-    } else if (username.trim().length < 3) {
-      setUsernameError('Username must be at least 3 characters');
-      isValid = false;
-    }
-
-    if (!password) {
-      setPasswordError('Password is required');
-      isValid = false;
-    } else if (password.length < 6) {
-      setPasswordError('Password must be at least 6 characters');
-      isValid = false;
-    }
-
-    return isValid;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoginMessage('');
-    setIsSuccess(false);
-
-    if (!validate()) {
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const fn = typeof mockApi === 'function' ? mockApi : builtinMockApi;
-      const result = await fn(username.trim(), password);
-
-      if (result.success) {
-        setLoginMessage(result.message || 'thanh cong');
-        setIsSuccess(true);
-
-        if (result.token) {
-          try {
-            localStorage.setItem('auth_token', result.token);
-          } catch (error) {
-            console.error('Failed to store token:', error);
-          }
-        }
-
-        if (typeof onSuccess === 'function') {
-          onSuccess(result.token, result);
-        }
-      } else {
-        setLoginMessage(result.message || 'Đăng nhập thất bại');
-        setIsSuccess(false);
-      }
-    } catch (err) {
-      setLoginMessage('Network error, please try again');
-      setIsSuccess(false);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+export const LoginForm = ({
+  username,
+  password,
+  usernameError,
+  passwordError,
+  loginMessage,
+  isSuccess,
+  loading,
+  onUsernameChange,
+  onPasswordChange,
+  onSubmit,
+}) => {
   return (
     <div className="login-container">
       <div className="login-card">
@@ -107,7 +41,7 @@ export default function Login({ mockApi, onSuccess }) {
           <p className="login-subtitle">Please sign in to your account</p>
         </div>
 
-        <form onSubmit={handleSubmit} noValidate className="login-form">
+        <form onSubmit={onSubmit} noValidate className="login-form">
           <div className="form-group">
             <label htmlFor="username-input" className="form-label">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -121,7 +55,7 @@ export default function Login({ mockApi, onSuccess }) {
               data-testid="username-input"
               type="text"
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={(e) => onUsernameChange(e.target.value)}
               placeholder="Enter your username"
               aria-invalid={!!usernameError}
               aria-describedby={usernameError ? 'username-error' : undefined}
@@ -148,7 +82,7 @@ export default function Login({ mockApi, onSuccess }) {
               data-testid="password-input"
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => onPasswordChange(e.target.value)}
               placeholder="Enter your password"
               aria-invalid={!!passwordError}
               aria-describedby={passwordError ? 'password-error' : undefined}
@@ -210,4 +144,4 @@ export default function Login({ mockApi, onSuccess }) {
       </div>
     </div>
   );
-}
+};

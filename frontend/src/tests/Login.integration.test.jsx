@@ -1,5 +1,20 @@
+import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import Login from '../components/Login';
+import { BrowserRouter } from 'react-router-dom';
+import LoginPage from '../pages/LoginPage';
+import { mockLogin } from '../services/authService';
+
+// Wrapper component that includes state management for testing
+const LoginWithState = ({ mockApi, onSuccess }) => {
+  return (
+    <BrowserRouter>
+      <LoginPage mockApi={mockApi} onSuccess={onSuccess} />
+    </BrowserRouter>
+  );
+};
+
+// Create alias for backward compatibility with tests
+const Login = LoginWithState;
 
 /**
  * Integration Tests for Login Component

@@ -8,56 +8,69 @@ import {
 } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import "@testing-library/jest-dom";
-import App from "../App"; // Test từ App (file router)
-import axios from "axios";
+import App from "../App";
+import * as productService from "../services/productService";
 
-// Helper function để reset DB (đã có từ bước trước)
-const resetDatabase = async () => {
-  try {
-    await axios.post("http://localhost:8080/api/testing/reset");
-  } catch (error) {
-    throw new Error("Database reset failed. Stopping tests.");
-  }
-};
+// Mock productService
+jest.mock("../services/productService");
 
-describe("App Component Integration Tests (Req 4.2.1)", () => {
-  beforeEach(async () => {
-    // Chạy reset DB thật
-    await resetDatabase();
-    // Mock các hàm của window
+describe("App Component Integration Tests (Mock)", () => {
+  beforeEach(() => {
+    // Mock window functions
     window.confirm = jest.fn(() => true);
     window.alert = jest.fn();
+    window.scrollTo = jest.fn();
+    
+    // Reset all mocks
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
-    // Dọn dẹp mocks/spies để các test độc lập, tránh rò rỉ state
-    jest.clearAllMocks();
     jest.restoreAllMocks();
   });
 
   // =================================================================
-  // CÁC TEST TÍCH HỢP "HAPPY PATH" (YÊU CẦU 4.2.1) - GIỮ NGUYÊN
+  // CÁC TEST TÍCH HỢP "HAPPY PATH"
   // =================================================================
 
-  // Test 1: Yêu cầu 4.2.1(a) - Tải danh sách rỗng
+  // Test 1: Tải danh sách rỗng
   test("Req 4.2.1(a): Nên tải và hiển thị danh sách (rỗng) từ API", async () => {
+    productService.getAllProducts.mockResolvedValueOnce({ data: [] });
+
     render(
       <MemoryRouter initialEntries={["/"]}>
         <App />
       </MemoryRouter>
     );
+
     expect(
       await screen.findByText("Không có sản phẩm nào.")
     ).toBeInTheDocument();
   });
 
-  // Test 2: Yêu cầu 4.2.1(b) - Create
+  // Test 2: Create
   test("Req 4.2.1(b) - Create: Nên tạo sản phẩm mới và cập nhật danh sách", async () => {
+    const newProduct = {
+      id: 1,
+      name: "Sản phẩm Test Tích Hợp",
+      price: 50000,
+      quantity: 20,
+      category: "Integration",
+    };
+
+    // Mock API calls
+    productService.getAllProducts
+      .mockResolvedValueOnce({ data: [] }) // Lần 1: danh sách rỗng
+      .mockResolvedValueOnce({ data: [newProduct] }); // Lần 2: có sản phẩm mới
+
+    productService.createProduct.mockResolvedValueOnce({ data: newProduct });
+
     render(
       <MemoryRouter initialEntries={["/"]}>
         <App />
       </MemoryRouter>
     );
+
     expect(
       await screen.findByText("Không có sản phẩm nào.")
     ).toBeInTheDocument();
@@ -80,181 +93,192 @@ describe("App Component Integration Tests (Req 4.2.1)", () => {
     await screen.findByText("Thêm sản phẩm thành công!");
     const newProductInList = await screen.findByText("Sản phẩm Test Tích Hợp");
     expect(newProductInList).toBeInTheDocument();
+    expect(productService.createProduct).toHaveBeenCalledWith({
+      name: "Sản phẩm Test Tích Hợp",
+      price: 50000,
+      quantity: 20,
+      category: "Integration",
+      description: "",
+    });
   });
 
-  // Test 3: Yêu cầu 4.2.1(b) - Edit
-  test("Req 4.2.1(b) - Edit: Nên gọi hàm (alert) khi nhấn nút Sửa", async () => {
+  // Test 3: Edit
+  test("Req 4.2.1(b) - Edit: Nên cập nhật sản phẩm thành công", async () => {
+    const existingProduct = {
+      id: 1,
+      name: "Sản phẩm Sẽ Được Sửa",
+      price: 100,
+      quantity: 10,
+      category: "Edit",
+    };
+
+    const updatedProduct = {
+      ...existingProduct,
+      price: 999,
+    };
+
+    // Mock API calls
+    productService.getAllProducts
+      .mockResolvedValueOnce({ data: [existingProduct] }) // Lần 1: load danh sách
+      .mockResolvedValueOnce({ data: [updatedProduct] }); // Lần 2: sau khi update
+
+    productService.updateProduct.mockResolvedValueOnce({ data: updatedProduct });
+
     render(
       <MemoryRouter initialEntries={["/"]}>
         <App />
       </MemoryRouter>
     );
-    // 1. TẠO SẢN PHẨM MỚI (Dùng API thật)
-    fireEvent.change(screen.getByTestId("product-name"), {
-      target: { value: "Sản phẩm Sẽ Được Sửa" },
-    });
-    fireEvent.change(screen.getByTestId("product-price"), {
-      target: { value: 100 },
-    });
-    fireEvent.change(screen.getByTestId("product-quantity"), {
-      target: { value: 10 },
-    });
-    fireEvent.change(screen.getByTestId("product-category"), {
-      target: { value: "Edit" },
-    });
-    fireEvent.click(screen.getByTestId("submit-button"));
-    await screen.findByText("Thêm sản phẩm thành công!");
 
     const productRow = await screen.findByRole("row", {
       name: /Sản phẩm sẽ được sửa/i,
     });
     const editButton = within(productRow).getByTestId(/edit-btn-/);
 
-    // 2. CLICK NÚT SỬA
+    // Click nút sửa
     fireEvent.click(editButton);
     
-    // 3. KIỂM TRA FORM ĐÃ ĐƯỢC ĐIỀN DỮ LIỆU
+    // Kiểm tra form đã được điền dữ liệu
     expect(await screen.findByTestId("product-name")).toHaveValue("Sản phẩm Sẽ Được Sửa");
     expect(screen.getByTestId("submit-button")).toHaveTextContent("Cập nhật");
     
-    // 4. THAY ĐỔI DỮ LIỆU VÀ SUBMIT
+    // Thay đổi dữ liệu và submit
     fireEvent.change(screen.getByTestId("product-price"), {
-      target: { value: 999 }, // Đổi giá thành 999
+      target: { value: 999 },
     });
     fireEvent.click(screen.getByTestId("submit-button"));
 
-    // 5. KIỂM TRA KẾT QUẢ CẬP NHẬT
+    // Kiểm tra kết quả cập nhật
     expect(await screen.findByText("Cập nhật sản phẩm thành công!")).toBeInTheDocument();
     
-    // Kiểm tra danh sách cập nhật (dòng có giá mới 999)
     const updatedRow = await screen.findByRole("row", {
       name: /Sản phẩm sẽ được sửa 999/i,
     });
     expect(updatedRow).toBeInTheDocument();
     
-    // 6. KIỂM TRA FORM ĐÃ RESET VỀ CHẾ ĐỘ THÊM MỚI
+    // Kiểm tra form đã reset về chế độ thêm mới
     expect(screen.getByTestId("submit-button")).toHaveTextContent("Lưu");
     expect(screen.getByTestId("product-name")).toHaveValue("");
+
+    expect(productService.updateProduct).toHaveBeenCalledWith(1, {
+      id: 1,
+      name: "Sản phẩm Sẽ Được Sửa",
+      price: 999,
+      quantity: 10,
+      category: "Edit",
+    });
   });
 
-  // Test 4: Yêu cầu 4.2.1(a) - Luồng Xóa
+  // Test 4: Delete
   test("Req 4.2.1(a) - Delete: Nên xóa sản phẩm khỏi danh sách", async () => {
+    const productToDelete = {
+      id: 1,
+      name: "Sản phẩm Sẽ Bị Xóa",
+      price: 1,
+      quantity: 1,
+      category: "Delete",
+    };
+
+    // Mock API calls
+    productService.getAllProducts
+      .mockResolvedValueOnce({ data: [productToDelete] }) // Lần 1: có sản phẩm
+      .mockResolvedValueOnce({ data: [] }); // Lần 2: sau khi xóa
+
+    productService.deleteProduct.mockResolvedValueOnce({ data: {} });
+
     render(
       <MemoryRouter initialEntries={["/"]}>
         <App />
       </MemoryRouter>
     );
-    fireEvent.change(screen.getByTestId("product-name"), {
-      target: { value: "Sản phẩm Sẽ Bị Xóa" },
-    });
-    fireEvent.change(screen.getByTestId("product-price"), {
-      target: { value: 1 },
-    });
-    fireEvent.change(screen.getByTestId("product-quantity"), {
-      target: { value: 1 },
-    });
-    fireEvent.change(screen.getByTestId("product-category"), {
-      target: { value: "Delete" },
-    });
-    fireEvent.click(screen.getByTestId("submit-button"));
-    await screen.findByText("Thêm sản phẩm thành công!");
 
-    const productCell = await screen.findByText("Sản phẩm Sẽ Bị Xóa");
     const productRow = await screen.findByRole("row", {
       name: /Sản phẩm sẽ bị xóa/i,
     });
 
-    // Tìm button Xóa dựa trên testid (ví dụ: delete-btn-1)
     const deleteButton = within(productRow).getByTestId(/delete-btn-/);
     fireEvent.click(deleteButton);
 
     expect(window.confirm).toHaveBeenCalledWith(
       "Bạn có chắc muốn xóa sản phẩm này?"
     );
+
     const successMessage = await screen.findByText("Xóa sản phẩm thành công!");
     expect(successMessage).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.queryByText("Sản phẩm Sẽ Bị Xóa")).toBeNull();
     });
+
     expect(
       await screen.findByText("Không có sản phẩm nào.")
     ).toBeInTheDocument();
+
+    expect(productService.deleteProduct).toHaveBeenCalledWith(1);
   });
 
-  // Test 5: Yêu cầu 4.2.1(c) - Xem chi tiết
+  // Test 5: Xem chi tiết
   test("Req 4.2.1(c): Nên hiển thị chi tiết sản phẩm khi click vào link", async () => {
+    const product = {
+      id: 1,
+      name: "Chi tiết Laptop",
+      price: 123456,
+      quantity: 7,
+      category: "Detail",
+    };
+
+    // Mock API calls
+    productService.getAllProducts.mockResolvedValueOnce({ data: [product] });
+    productService.getProductById.mockResolvedValueOnce({ data: product });
+
     render(
       <MemoryRouter initialEntries={["/"]}>
         <App />
       </MemoryRouter>
     );
 
-    // ----- PHẦN A: Thêm một sản phẩm (Dùng API thật) -----
-    fireEvent.change(screen.getByTestId("product-name"), {
-      target: { value: "Chi tiết Laptop" },
-    });
-    fireEvent.change(screen.getByTestId("product-price"), {
-      target: { value: 123456 },
-    });
-    fireEvent.change(screen.getByTestId("product-quantity"), {
-      target: { value: 7 },
-    });
-    fireEvent.change(screen.getByTestId("product-category"), {
-      target: { value: "Detail" },
-    });
-    fireEvent.click(screen.getByTestId("submit-button"));
-
     const productLink = await screen.findByText("Chi tiết Laptop");
     expect(productLink).toBeInTheDocument();
 
-    // ----- PHẦN B: Click vào link sản phẩm (Dùng API thật) -----
+    // Click vào link sản phẩm
     fireEvent.click(productLink);
 
-    // ----- PHẦN C: Xác minh trang chi tiết (ProductDetail) -----
+    // Xác minh trang chi tiết
     const detailName = await screen.findByTestId("product-detail-name");
     expect(detailName).toHaveTextContent("Chi tiết Laptop");
     const detailPrice = await screen.findByTestId("product-detail-price");
-    // Chấp nhận nhiều định dạng phân tách hàng nghìn tùy theo locale môi trường CI
     expect(detailPrice).toHaveTextContent(/Giá:\s?123[.,\s]456 VND/);
     const detailQty = await screen.findByTestId("product-detail-quantity");
     expect(detailQty).toHaveTextContent("Số lượng: 7");
     const detailCat = await screen.findByTestId("product-detail-category");
     expect(detailCat).toHaveTextContent("Danh mục: Detail");
     expect(screen.getByText(/Quay về danh sách/)).toBeInTheDocument();
+
+    expect(productService.getProductById).toHaveBeenCalledWith("1");
   });
 
   // =================================================================
-  // CÁC TEST MỚI: "SAD PATH" ĐỂ TĂNG COVERAGE
+  // CÁC TEST "SAD PATH" ĐỂ TĂNG COVERAGE
   // =================================================================
 
-  // Test 6: (Cover ProductPage.js: 22-24)
+  // Test 6: Lỗi khi tải danh sách
   test("Sad Path: Nên hiển thị lỗi khi API tải danh sách thất bại", async () => {
-    // Tạm thời ghi đè axios.get để nó trả về lỗi
-    const getSpy = jest
-      .spyOn(axios, "get")
-      .mockRejectedValueOnce(new Error("Network Error"));
+    productService.getAllProducts.mockRejectedValueOnce(new Error("Network Error"));
 
-    const { unmount } = render(
+    render(
       <MemoryRouter initialEntries={["/"]}>
         <App />
       </MemoryRouter>
     );
 
-    // Assert: Thông báo lỗi từ ProductPage.js (dòng 23) được hiển thị
     const errorMessage = await screen.findByText(
       "Lỗi khi tải danh sách sản phẩm"
     );
     expect(errorMessage).toBeInTheDocument();
+  });
 
-    // Khôi phục lại hàm axios.get gốc cho các test sau
-    getSpy.mockRestore();
-
-  // Unmount instance đầu tiên trước khi render lần 2 để tránh trùng lặp node
-  unmount();
-
-    // ⭐️ THÊM TEST CHO NHÁNH PHÂN TRANG ⭐️
-    // Giả lập API GET trả về dữ liệu có phân trang
+  // Test 7: Test phân trang
+  test("Nên hiển thị sản phẩm từ API trả về cấu trúc phân trang", async () => {
     const paginatedData = {
       content: [
         {
@@ -266,9 +290,8 @@ describe("App Component Integration Tests (Req 4.2.1)", () => {
         },
       ],
     };
-    const getSpyPaginated = jest
-      .spyOn(axios, "get")
-      .mockResolvedValueOnce({ data: paginatedData });
+
+    productService.getAllProducts.mockResolvedValueOnce({ data: paginatedData });
 
     render(
       <MemoryRouter initialEntries={["/"]}>
@@ -276,27 +299,22 @@ describe("App Component Integration Tests (Req 4.2.1)", () => {
       </MemoryRouter>
     );
 
-    // Assert: Sản phẩm được hiển thị (chứng tỏ nhánh 16-17 đã chạy)
     expect(await screen.findByText("Sản phẩm Phân Trang")).toBeInTheDocument();
-    getSpyPaginated.mockRestore();
   });
 
-  // Test 7: (Cover ProductPage.js: 39-40)
+  // Test 8: Lỗi khi thêm sản phẩm
   test("Sad Path: Nên hiển thị lỗi khi thêm sản phẩm thất bại", async () => {
-    // 1. Ghi đè hàm POST để trả về lỗi
-    // (Hàm GET để tải danh sách rỗng vẫn chạy thật)
-    const postSpy = jest
-      .spyOn(axios, "post")
-      .mockRejectedValueOnce(new Error("Create Error"));
+    productService.getAllProducts.mockResolvedValueOnce({ data: [] });
+    productService.createProduct.mockRejectedValueOnce(new Error("Create Error"));
 
     render(
       <MemoryRouter initialEntries={["/"]}>
         <App />
       </MemoryRouter>
     );
-    await screen.findByText("Không có sản phẩm nào."); // Đợi trang tải xong
 
-    // Action: Điền form và submit
+    await screen.findByText("Không có sản phẩm nào.");
+
     fireEvent.change(screen.getByTestId("product-name"), {
       target: { value: "Sản phẩm Bị Lỗi" },
     });
@@ -311,15 +329,48 @@ describe("App Component Integration Tests (Req 4.2.1)", () => {
     });
     fireEvent.click(screen.getByTestId("submit-button"));
 
-    // Assert: Thông báo lỗi từ ProductPage.js (dòng 41) được hiển thị
     const errorMessage = await screen.findByText("Lỗi khi thêm sản phẩm");
     expect(errorMessage).toBeInTheDocument();
-
-    // Khôi phục hàm post
-    postSpy.mockRestore();
   });
 
-  // Test 8: (Cover ProductPage.js: 52-53)
+  // Test 9: Lỗi khi cập nhật sản phẩm
+  test("Sad Path: Nên hiển thị lỗi khi cập nhật sản phẩm thất bại", async () => {
+    const existingProduct = {
+      id: 1,
+      name: "Sản phẩm Update Lỗi",
+      price: 100,
+      quantity: 10,
+      category: "Edit",
+    };
+
+    productService.getAllProducts.mockResolvedValueOnce({ data: [existingProduct] });
+    productService.updateProduct.mockRejectedValueOnce(new Error("Update Error"));
+
+    render(
+      <MemoryRouter initialEntries={["/"]}>
+        <App />
+      </MemoryRouter>
+    );
+
+    const productRow = await screen.findByRole("row", {
+      name: /Sản phẩm update lỗi/i,
+    });
+    const editButton = within(productRow).getByTestId(/edit-btn-/);
+
+    fireEvent.click(editButton);
+    
+    await screen.findByTestId("product-name");
+    
+    fireEvent.change(screen.getByTestId("product-price"), {
+      target: { value: 999 },
+    });
+    fireEvent.click(screen.getByTestId("submit-button"));
+
+    const errorMessage = await screen.findByText("Lỗi khi cập nhật sản phẩm");
+    expect(errorMessage).toBeInTheDocument();
+  });
+
+  // Test 10: Lỗi khi xóa sản phẩm
   test("Sad Path: Nên hiển thị lỗi khi xóa sản phẩm thất bại", async () => {
     const mockProduct = {
       id: 99,
@@ -329,15 +380,8 @@ describe("App Component Integration Tests (Req 4.2.1)", () => {
       category: "Delete",
     };
 
-    // 1. Tạm thời MOCK hàm GET để trả về 1 sản phẩm
-    const getSpy = jest
-      .spyOn(axios, "get")
-      .mockResolvedValueOnce({ data: [mockProduct] });
-
-    // 2. Tạm thời MOCK hàm DELETE trả về lỗi
-    const deleteSpy = jest
-      .spyOn(axios, "delete")
-      .mockRejectedValueOnce(new Error("Delete Error"));
+    productService.getAllProducts.mockResolvedValueOnce({ data: [mockProduct] });
+    productService.deleteProduct.mockRejectedValueOnce(new Error("Delete Error"));
 
     render(
       <MemoryRouter initialEntries={["/"]}>
@@ -345,29 +389,20 @@ describe("App Component Integration Tests (Req 4.2.1)", () => {
       </MemoryRouter>
     );
 
-    // Tìm sản phẩm và nút xóa của nó
-    const productCell = await screen.findByText("Sản phẩm Xóa Lỗi");
     const productRow = await screen.findByRole("row", {
       name: /Sản phẩm xóa lỗi/i,
     });
 
-    // Phải dùng /delete-btn-99/ vì ID sản phẩm là 99
     const deleteButton = within(productRow).getByTestId(/delete-btn-99/);
-
-    // Action: Click xóa
     fireEvent.click(deleteButton);
-    expect(window.confirm).toHaveBeenCalled(); // Đảm bảo confirm đã được gọi
 
-    // Assert: Thông báo lỗi từ ProductPage.js (dòng 54) được hiển thị
+    expect(window.confirm).toHaveBeenCalled();
+
     const errorMessage = await screen.findByText("Lỗi khi xóa sản phẩm");
     expect(errorMessage).toBeInTheDocument();
-
-    // Khôi phục các spy
-    getSpy.mockRestore();
-    deleteSpy.mockRestore();
   });
 
-  // Test 9: (Cover ProductDetail.js: 17-18, 24)
+  // Test 11: Lỗi khi xem chi tiết
   test("Sad Path: Nên hiển thị lỗi khi xem chi tiết sản phẩm không tồn tại", async () => {
     const mockProduct = {
       id: 101,
@@ -377,14 +412,8 @@ describe("App Component Integration Tests (Req 4.2.1)", () => {
       category: "Detail",
     };
 
-    // Tạm thời ghi đè axios.get
-    const getSpy = jest.spyOn(axios, "get");
-
-    // Lần gọi 1 (cho ProductPage): Trả về 1 sản phẩm
-    getSpy.mockResolvedValueOnce({ data: [mockProduct] });
-
-    // Lần gọi 2 (cho ProductDetail): Trả về lỗi
-    getSpy.mockRejectedValueOnce(new Error("Not Found"));
+    productService.getAllProducts.mockResolvedValueOnce({ data: [mockProduct] });
+    productService.getProductById.mockRejectedValueOnce(new Error("Not Found"));
 
     render(
       <MemoryRouter initialEntries={["/"]}>
@@ -392,75 +421,95 @@ describe("App Component Integration Tests (Req 4.2.1)", () => {
       </MemoryRouter>
     );
 
-    // Action: Click vào link sản phẩm
     const productLink = await screen.findByText("Sản phẩm xem chi tiết");
     fireEvent.click(productLink);
 
-    // Assert: Thông báo lỗi từ ProductDetail.js (dòng 20) được hiển thị
     const errorMessage = await screen.findByTestId("error-message");
     expect(errorMessage).toHaveTextContent("Không tìm thấy sản phẩm");
-
-    // Khôi phục spy
-    getSpy.mockRestore();
   });
 
+  // Test 12: Không xóa khi nhấn Cancel
   test("Sad Path: Không nên xóa sản phẩm nếu người dùng nhấn 'Cancel'", async () => {
+    const product = {
+      id: 1,
+      name: "Sản phẩm không xóa",
+      price: 1,
+      quantity: 1,
+      category: "Test",
+    };
+
+    window.confirm.mockReturnValueOnce(false);
+
+    productService.getAllProducts.mockResolvedValueOnce({ data: [product] });
+
     render(
       <MemoryRouter initialEntries={["/"]}>
         <App />
       </MemoryRouter>
     );
-    // 1. Tạo sản phẩm (dùng API thật)
-    fireEvent.change(screen.getByTestId("product-name"), {
-      target: { value: "Sản phẩm không xóa" },
-    });
-    fireEvent.change(screen.getByTestId("product-price"), {
-      target: { value: 1 },
-    });
-    fireEvent.change(screen.getByTestId("product-quantity"), {
-      target: { value: 1 },
-    });
-    fireEvent.change(screen.getByTestId("product-category"), {
-      target: { value: "Test" },
-    });
-    fireEvent.click(screen.getByTestId("submit-button"));
 
-    const productCell = await screen.findByText("Sản phẩm không xóa");
-
-    // 2. Giả lập window.confirm trả về "false" (nhấn Cancel)
-    window.confirm.mockReturnValueOnce(false);
-
-    // 3. Click nút xóa
     const productRow = await screen.findByRole("row", {
       name: /Sản phẩm không xóa/i,
     });
     const deleteButton = within(productRow).getByTestId(/delete-btn-/);
     fireEvent.click(deleteButton);
 
-    // 4. Assert: Sản phẩm VẪN CÒN
     expect(window.confirm).toHaveBeenCalled();
+    expect(productService.deleteProduct).not.toHaveBeenCalled();
     expect(screen.queryByText("Xóa sản phẩm thành công!")).toBeNull();
     expect(await screen.findByText("Sản phẩm không xóa")).toBeInTheDocument();
   });
 
+  // Test 13: Xử lý cấu trúc dữ liệu không hợp lệ
   test("Sad Path: Nên xử lý khi API trả về cấu trúc dữ liệu không hợp lệ", async () => {
-    // Giả lập API GET trả về dữ liệu thành công, nhưng cấu trúc sai
-    // (Không phải mảng, cũng không có .content)
-    const getSpyInvalid = jest
-      .spyOn(axios, "get")
-      .mockResolvedValueOnce({ data: { message: "API trả về lỗi cấu trúc" } });
+    productService.getAllProducts.mockResolvedValueOnce({ 
+      data: { message: "API trả về lỗi cấu trúc" } 
+    });
 
     render(
       <MemoryRouter initialEntries={["/"]}>
         <App />
       </MemoryRouter>
     );
-    // Assert: Component nên xử lý lỗi này bằng cách hiển thị "Không có sản phẩm"
-    // (Vì nhánh 'else' cuối cùng trả về [])
+
     expect(
       await screen.findByText("Không có sản phẩm nào.")
     ).toBeInTheDocument();
+  });
 
-    getSpyInvalid.mockRestore();
+  // Test 14: Test nút Hủy sửa
+  test("Nên reset form khi nhấn nút Hủy sửa", async () => {
+    const existingProduct = {
+      id: 1,
+      name: "Sản phẩm Test Hủy",
+      price: 100,
+      quantity: 10,
+      category: "Edit",
+    };
+
+    productService.getAllProducts.mockResolvedValueOnce({ data: [existingProduct] });
+
+    render(
+      <MemoryRouter initialEntries={["/"]}>
+        <App />
+      </MemoryRouter>
+    );
+
+    const productRow = await screen.findByRole("row", {
+      name: /Sản phẩm test hủy/i,
+    });
+    const editButton = within(productRow).getByTestId(/edit-btn-/);
+
+    fireEvent.click(editButton);
+    
+    expect(await screen.findByTestId("product-name")).toHaveValue("Sản phẩm Test Hủy");
+    expect(screen.getByTestId("submit-button")).toHaveTextContent("Cập nhật");
+    
+    // Click nút Hủy sửa
+    const cancelButton = screen.getByText("← Hủy Sửa");
+    fireEvent.click(cancelButton);
+
+    expect(screen.getByTestId("submit-button")).toHaveTextContent("Lưu");
+    expect(screen.getByTestId("product-name")).toHaveValue("");
   });
 });
