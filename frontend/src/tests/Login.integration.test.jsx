@@ -107,7 +107,7 @@ describe('Login Component Integration Tests', () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(screen.getByTestId('login-message')).toHaveTextContent('thanh cong');
+      expect(screen.getByTestId('login-message')).toHaveTextContent('Đăng nhập thành công');
     });
   });
 
@@ -183,7 +183,7 @@ describe('Login Component Integration Tests', () => {
 
     await waitFor(() => {
       const message = screen.getByTestId('login-message');
-      expect(message).toHaveTextContent('thanh cong');
+      expect(message).toHaveTextContent('Đăng nhập thành công');
       expect(message).toHaveClass('success');
     });
   });
@@ -201,7 +201,7 @@ describe('Login Component Integration Tests', () => {
 
     await waitFor(() => {
       const message = screen.getByTestId('login-message');
-      expect(message).toHaveTextContent('sai thong tin');
+      expect(message).toHaveTextContent('Đăng nhập thất bại');
       expect(message).toHaveClass('error');
     });
   });
@@ -239,7 +239,7 @@ describe('Login Component Integration Tests', () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(screen.getByTestId('login-message')).toHaveTextContent('sai thong tin');
+      expect(screen.getByTestId('login-message')).toHaveTextContent('Đăng nhập thất bại');
     });
 
     // Submit lần 2 với đúng thông tin
@@ -249,7 +249,7 @@ describe('Login Component Integration Tests', () => {
 
     await waitFor(() => {
       const message = screen.getByTestId('login-message');
-      expect(message).toHaveTextContent('thanh cong');
+      expect(message).toHaveTextContent('Đăng nhập thành công');
       expect(message).toHaveClass('success');
     });
   });
@@ -277,7 +277,7 @@ describe('Login Component Integration Tests', () => {
 
     await waitFor(() => {
       expect(customMockApi).toHaveBeenCalledWith('testuser', 'Test123');
-      expect(screen.getByTestId('login-message')).toHaveTextContent('custom success');
+      expect(screen.getByTestId('login-message')).toHaveTextContent('Đăng nhập thành công');
     });
   });
 });
