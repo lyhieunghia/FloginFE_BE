@@ -35,11 +35,7 @@ jobs:
           key: ${{ runner.os }}-npm-${{ hashFiles('frontend/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-npm-
-
-      - name: Make Maven wrapper executable
-        working-directory: backend
-        run: chmod +x ./mvnw
-
+            
       - name: Install backend dependencies
         working-directory: backend
         run: ./mvnw -B clean compile -DskipTests
@@ -80,7 +76,11 @@ jobs:
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: 123456
 
-    steps:
+    steps:    
+      - name: Make Maven wrapper executable
+        working-directory: backend
+        run: chmod +x ./mvnw
+        
       - name: Download prepared code
         uses: actions/download-artifact@v4
         with:
@@ -135,6 +135,10 @@ jobs:
       SPRING_DATASOURCE_PASSWORD: 123456
 
     steps:
+      - name: Make Maven wrapper executable
+        working-directory: backend
+        run: chmod +x ./mvnw
+        
       - name: Download prepared code
         uses: actions/download-artifact@v4
         with:
