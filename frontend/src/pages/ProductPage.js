@@ -126,6 +126,7 @@ export const ProductPage = () => {
             <button 
                 onClick={handleCancelEdit}
                 className="btn btn-sm btn-outline-secondary mb-3 w-100"
+                data-testid="cancel-edit-button"
             >
                 &larr; Hủy Sửa
             </button>

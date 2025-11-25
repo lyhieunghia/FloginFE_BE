@@ -12,6 +12,7 @@ export const ProductForm = ({ onSubmit, productToEdit }) => {
     category: "",
   });
   const [errors, setErrors] = useState({});
+  const [isSuccess, setIsSuccess] = useState(false);
 
   useEffect(() => {
     if (productToEdit) {

@@ -1,9 +1,19 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import { ProductPage } from './pages/ProductPage';
 import { ProductDetail } from './components/ProductDetail';
 
+
 function App() {
+  const navigate = useNavigate();
+
+  const handleLoginSuccess = () => {
+    setTimeout(() =>{
+      navigate('/', { replace: true })
+    },
+      700
+    );
+  };
   return (
       <div className="App">
         <header>
@@ -11,7 +21,7 @@ function App() {
         </header>
 
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/login" element={<LoginPage onSuccess={handleLoginSuccess} />} />
 
           <Route
             path="/"

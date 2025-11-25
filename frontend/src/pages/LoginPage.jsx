@@ -35,6 +35,7 @@ export default function LoginPage({ mockApi, onSuccess }) {
     setPasswordError(passwordError);
 
     if (!isValid) {
+      setLoginMessage('Đăng nhập thất bại');
       return;
     }
 
@@ -47,8 +48,10 @@ export default function LoginPage({ mockApi, onSuccess }) {
 
       if (result.success) {
         // Login successful
-        setLoginMessage(result.message || 'thanh cong');
+        setLoginMessage('Đăng nhập thành công');
         setIsSuccess(true);
+        setLoading(false);
+
 
         // Store token if provided
         if (result.token) {
@@ -61,12 +64,12 @@ export default function LoginPage({ mockApi, onSuccess }) {
         } else {
           // Default behavior: navigate to home after delay
           setTimeout(() => {
-            navigate('/');
+            navigate('');
           }, 1500);
         }
       } else {
         // Login failed
-        setLoginMessage(result.message || 'sai thong tin');
+        setLoginMessage('Đăng nhập thất bại');
         setIsSuccess(false);
       }
     } catch (error) {
