@@ -7,29 +7,11 @@ on:
     branches: [ develop, main ]
 
 jobs:
-  unit-tests:
+  preparation:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
-
-    services:
-      mysql:
-        image: mysql:8
-        env:
-          MYSQL_DATABASE: flogin_db
-          MYSQL_ROOT_PASSWORD: 123456
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping -h localhost -p123456"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
-    env:
-      SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/flogin_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: 123456
-
+    outputs:
+      backend-dir: backend
+      frontend-dir: frontend
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -62,6 +44,48 @@ jobs:
         working-directory: backend
         run: ./mvnw -B clean compile -DskipTests
 
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Upload code for reuse
+        uses: actions/upload-artifact@v4
+        with:
+          name: code
+          path: |
+            backend/
+            frontend/
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    needs: preparation
+
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_DATABASE: flogin_db
+          MYSQL_ROOT_PASSWORD: 123456
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -p123456"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/flogin_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 123456
+
+    steps:
+      - name: Download prepared code
+        uses: actions/download-artifact@v4
+        with:
+          name: code
+
       - name: Run backend unit tests
         working-directory: backend
         run: ./mvnw -B test
@@ -89,7 +113,7 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    needs: unit-tests
+    needs: preparation
 
     services:
       mysql:
@@ -111,53 +135,31 @@ jobs:
       SPRING_DATASOURCE_PASSWORD: 123456
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Java 17
-        uses: actions/setup-java@v4
+      - name: Download prepared code
+        uses: actions/download-artifact@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'maven'
-
-      - name: Setup Node.js 18
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-
-      - name: Cache npm packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm/_cacache
-          key: ${{ runner.os }}-npm-${{ hashFiles('frontend/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-npm-
-
-      - name: Make Maven wrapper executable
-        working-directory: backend
-        run: chmod +x ./mvnw
+          name: code
 
       - name: Build backend
         working-directory: backend
         run: ./mvnw -B package -DskipTests
 
-      - name: Install frontend dependencies
-        working-directory: frontend
-        run: npm ci
-
       - name: Build frontend
         working-directory: frontend
         run: npm run build
+
+      - name: Start backend
+        working-directory: backend
+        run: ./mvnw spring-boot:run &
+
+      - name: Start frontend
+        working-directory: frontend
+        run: npm start &
 
       - name: Run E2E tests with Cypress
         uses: cypress-io/github-action@v6
         with:
           working-directory: frontend
-          install: false
-          start: |
-            cd ../backend && ./mvnw spring-boot:run &
-            npm start
           wait-on: 'http://localhost:8080/api/test/health, http://localhost:3000'
           wait-on-timeout: 120000
           command: npm run test:e2e
