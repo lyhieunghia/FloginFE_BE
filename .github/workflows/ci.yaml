@@ -36,6 +36,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-npm-
             
+      - name: Make Maven wrapper executable
+        working-directory: backend
+        run: chmod +x ./mvnw
+            
       - name: Install backend dependencies
         working-directory: backend
         run: ./mvnw -B clean compile -DskipTests
