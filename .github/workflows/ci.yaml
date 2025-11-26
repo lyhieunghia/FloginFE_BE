@@ -64,6 +64,9 @@ jobs:
         working-directory: backend
         run: ./mvnw -B test
 
+      - name: Clean node_modules cache
+        run: rm -rf frontend/node_modules/.cache
+
       - name: Install frontend dependencies
         working-directory: frontend
         run: npm ci
@@ -132,6 +135,9 @@ jobs:
       - name: Install backend dependencies
         working-directory: backend
         run: ./mvnw -B clean compile -DskipTests
+        
+      - name: Clean node_modules cache
+        run: rm -rf frontend/node_modules/.cache
 
       - name: Install frontend dependencies
         working-directory: frontend
