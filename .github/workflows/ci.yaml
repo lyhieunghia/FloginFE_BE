@@ -41,18 +41,11 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Setup Node.js 18
+      - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-
-      - name: Cache npm packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm/_cacache
-          key: ${{ runner.os }}-npm-${{ hashFiles('frontend/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-npm-
+          node-version: '20.17.0'
+          cache: 'npm'
             
       - name: Make Maven wrapper executable
         working-directory: backend
@@ -124,18 +117,11 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Setup Node.js 18
+      - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-
-      - name: Cache npm packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm/_cacache
-          key: ${{ runner.os }}-npm-${{ hashFiles('frontend/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-npm-
+          node-version: '20.17.0'
+          cache: 'npm'
             
       - name: Make Maven wrapper executable
         working-directory: backend
