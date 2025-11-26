@@ -3,10 +3,19 @@ import ProductPage from "../support/page/ProductPage";
 describe('Product E2E Tests', () => {
     const productPage = new ProductPage();
 
-    beforeEach(() => {
+    before(() => {
         cy.login('testuser', 'Test123');
-        productPage.visit();
+        cy.request('POST', 'http://localhost:8080/api/testing/reset');
     });
+
+    beforeEach(() => {        
+        productPage.visit();
+        
+        cy.intercept('GET','/api/products').as('getProducts');
+        cy.intercept('POST', 'api/products').as('createProduct');
+        cy.intercept('PUT', 'api/products/*').as('updateProduct');
+        cy.intercept('DELETE', 'api/products/*').as('deleteProduct');
+    })
 
     it('TC1: Nên tạo sản phẩm thành công', () => {
         productPage.fillProductForm({
@@ -17,9 +26,13 @@ describe('Product E2E Tests', () => {
         });
 
         productPage.submitProductForm();
+        cy.wait('@createProduct')
+            .its('response.statusCode')
+            .should('be.oneOf', [200,201]);
         
         productPage.getSuccessMessage()
             .should('contain', 'Thêm sản phẩm thành công');
+
         productPage.getProductInList('Laptop Dell')
             .should('exist');
     });
@@ -42,7 +55,11 @@ describe('Product E2E Tests', () => {
         cy.get('[data-testid="product-price"]')
             .clear()
             .type('14000000');
+
         productPage.submitProductForm();
+        cy.wait('@updateProduct')
+            .its('response.statusCode')
+            .should('eq', 200);
 
         productPage.getProductInList('Laptop Dell')
             .children().eq(1)
@@ -59,6 +76,10 @@ describe('Product E2E Tests', () => {
             .find('[data-testid^="delete-btn"]')
             .click({force: true});
         
+        cy.wait('@deleteProduct')
+            .its('response.statusCode')
+            .should('eq', 204);
+
         productPage.getProductInList('Laptop Dell')
             .should('not.exist');
 

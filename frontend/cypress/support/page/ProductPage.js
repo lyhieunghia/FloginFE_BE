@@ -19,6 +19,10 @@ class ProductPage {
     }
 
     getProductInList(name) {
+        cy.wait('@getProducts')
+            .its('response.statusCode')
+            .should('eq', 200);
+            
         return cy.contains('[data-testid^="product-item"]', name);
     }
 }
