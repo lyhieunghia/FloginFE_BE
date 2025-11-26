@@ -56,6 +56,9 @@ jobs:
         working-directory: backend
         run: ./mvnw -B clean compile -DskipTests
 
+      - name: Clean node_modules cache
+        run: rm -rf frontend/node_modules/.cache
+
       - name: Install frontend dependencies
         working-directory: frontend
         run: npm ci
@@ -63,13 +66,6 @@ jobs:
       - name: Run backend unit tests
         working-directory: backend
         run: ./mvnw -B test
-
-      - name: Clean node_modules cache
-        run: rm -rf frontend/node_modules/.cache
-
-      - name: Install frontend dependencies
-        working-directory: frontend
-        run: npm ci
 
       - name: Run frontend unit tests with coverage
         working-directory: frontend
@@ -150,6 +146,8 @@ jobs:
       - name: Build frontend
         working-directory: frontend
         run: npm run build
+        env:
+          BABEL_DISABLE_CACHE: 1
 
       - name: Start backend
         working-directory: backend
