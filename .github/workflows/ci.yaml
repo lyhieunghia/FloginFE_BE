@@ -145,9 +145,9 @@ jobs:
         working-directory: frontend
         run: npm start &
 
-      - name: Wait for backend and frontend
+      - name: Wait for backend 
         working-directory: frontend
-        run: npx wait-on --timeout 200000 http://localhost:8080/api/test/health
+        run: npx wait-on --timeout 300000 http://localhost:8080/api/test/health
 
       - name: Wait for frontend
         working-directory: frontend
