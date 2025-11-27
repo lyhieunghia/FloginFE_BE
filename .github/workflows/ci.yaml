@@ -103,9 +103,6 @@ jobs:
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: 123456
 
-    container:
-      image: cypress/included:15.7.0
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -116,6 +113,13 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: 'maven'
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.17.0'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
             
       - name: Make Maven wrapper executable
         working-directory: backend
@@ -139,21 +143,19 @@ jobs:
 
       - name: Start backend
         working-directory: backend
-        run: ./mvnw spring-boot:run 
+        run: ./mvnw spring-boot:run &
 
       - name: Start frontend
         working-directory: frontend
-        run: npm start 
+        run: npm start &
 
       - name: Wait for backend 
         working-directory: frontend
-        run: |
-          sleep 60
-          npx wait-on --timeout 60000 --interval 1000 http://localhost:8080/api/test/health
+        run: npx wait-on --timeout 120000 --interval 1000 http://localhost:8080/api/test/health
 
       - name: Wait for frontend
         working-directory: frontend
-        run: npx wait-on --timeout 120000 --interval 1000 http://localhost:3000
+        run: npx wait-on --timeout 60000 --interval 1000 http://localhost:3000
 
       - name: Run E2E tests with Cypress      
         working-directory: frontend
