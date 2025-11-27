@@ -146,6 +146,7 @@ jobs:
         run: npm start &
 
       - name: Wait for backend and frontend
+        working-directory: frontend
         run: npx wait-on http://localhost:8080/api/test/health http://localhost:3000
 
       - name: Run E2E tests with Cypress      
