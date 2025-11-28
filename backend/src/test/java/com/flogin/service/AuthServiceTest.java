@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Optional;
 
@@ -17,7 +18,8 @@ import java.util.Optional;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-@DisplayName("Login Service Unit Tests") // [cite: 198]
+@ActiveProfiles("test")
+@DisplayName("Login Service Unit Tests")
 class AuthServiceTest {
 
     // 1. Giả lập (Mock) các dependency mà AuthService cần
