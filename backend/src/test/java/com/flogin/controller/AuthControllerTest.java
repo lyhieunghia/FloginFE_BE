@@ -26,6 +26,7 @@ import static org.hamcrest.Matchers.*;
  */
 @WebMvcTest(controllers = AuthController.class)
 @DisplayName("Auth Controller API Tests - CORS & Headers")
+@org.springframework.test.context.ActiveProfiles("test")
 class AuthControllerTest {
 
     @Autowired
