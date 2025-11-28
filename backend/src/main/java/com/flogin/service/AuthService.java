@@ -10,37 +10,39 @@ import org.springframework.stereotype.Service;
 @Service
 public class AuthService {
     private final UserRepository userRepository;
-    private final PasswordMatcher passwordMatcher;
+    private final PasswordService passwordService;
+    private final JwtUtil jwtUtil;
 
-    public AuthService(UserRepository userRepository, PasswordMatcher passwordMatcher) {
+    public AuthService(UserRepository userRepository, PasswordService passwordService, JwtUtil jwtUtil) {
         this.userRepository = userRepository;
-        this.passwordMatcher = passwordMatcher;
+        this.passwordService = passwordService;
+        this.jwtUtil = jwtUtil;
     }
 
     public LoginResponse authenticate(LoginRequest request) {
         try {
             validateLoginRequest(request);
 
-            // Scenario 1: Login với username không tồn tại
+            // Scenario 1: Login with a non-existent username
             UserEntity user = userRepository.findByUsername(request.getUsername())
                     .orElseThrow(() -> new RuntimeException("username not found"));
 
-            boolean ok = passwordMatcher.matches(request.getPassword(), user.getPassword());
+            boolean ok = passwordService.matches(request.getPassword(), user.getPassword());
             if (!ok) {
-                // Scenario 2: Login với password sai
+                // Scenario 2: Login with incorrect password
                 throw new RuntimeException("wrong password");
             }
 
-            // Scenario 3: Login thành công
-            String token = "trinh-tran-phuong-tuan"; // Ví dụ token
+            // Scenario 3: Login successful
+            String token = jwtUtil.generateToken(user);
             
             return new LoginResponse(true, "login success", token);
 
         } catch (ValidationException | IllegalArgumentException e) {
-            // Bắt lỗi validation trước
+            // Catch validation errors first
             return new LoginResponse(false, e.getMessage());
         } catch (RuntimeException e) {
-            // Bắt lỗi authentication sau
+            // Catch authentication errors later
             return new LoginResponse(false, e.getMessage());
         }
     }
