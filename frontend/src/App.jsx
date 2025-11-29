@@ -1,46 +1,21 @@
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import LoginPage from './pages/LoginPage';
-import { ProductPage } from './pages/ProductPage';
-import { ProductDetail } from './components/ProductDetail';
+import React from 'react';
+import Login from './components/Login';
+import { loginApi } from './services/apiService';
+import './App.css';
 
-
-function App() {
-  const navigate = useNavigate();
-
-  const handleLoginSuccess = () => {
-    setTimeout(() =>{
-      navigate('/', { replace: true })
-    },
-      700
-    );
+/**
+ * Main App Component quản lý authentication flow và routing
+ */
+export default function App() {
+  const handleLoginSuccess = (token, userData) => {
+    console.log('✅ Login successful!');
+    console.log('📝 Token:', token);
+    console.log('👤 User data:', userData);
+    // TODO: navigate or update global state if needed
   };
   return (
-      <div className="App">
-        <header>
-          <h1>Quản lý Sản phẩm (Flogin)</h1>
-        </header>
-
-        <Routes>
-          <Route path="/login" element={<LoginPage onSuccess={handleLoginSuccess} />} />
-
-          <Route
-            path="/"
-            element={
-                <ProductPage />
-            }
-          />
-
-          <Route
-            path="/products/:id"
-            element={
-                <ProductDetail />
-            }
-          />
-
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </div>
+    <div className="App">
+      <Login mockApi={loginApi} onSuccess={handleLoginSuccess} />
+    </div>
   );
 }
-
-export default App;
