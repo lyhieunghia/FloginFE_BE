@@ -9,7 +9,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create-drop
     show-sql: true
     properties:
       hibernate:
@@ -18,9 +18,13 @@ spring:
   
   sql:
     init:
-      mode: never  # Use 'always' if you want to run schema-mysql.sql on startup
+      mode: always  # Use 'always' if you want to run schema-mysql.sql on startup
 
 logging:
   level:
     org.springframework: INFO
     com.flogin: DEBUG
+
+jwt:
+  secret: "your-super-secret-key-that-is-long-enough-to-be-secure"
+  expiration: 86400000 # 24 hours in milliseconds

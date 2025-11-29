@@ -31,4 +31,6 @@ logging:
     org.springframework: INFO
     com.flogin: DEBUG
     org.hibernate.SQL: DEBUG
+jwt:
+  expiration: 86400000 # 24 hours in milliseconds
 

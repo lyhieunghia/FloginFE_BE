@@ -13,11 +13,13 @@ import org.springframework.stereotype.Service;
 @Service
 public class AuthService {
     private final UserRepository userRepository;
-    private final PasswordMatcher passwordMatcher;
+    private final PasswordService passwordService;
+    private final JwtUtil jwtUtil;
 
-    public AuthService(UserRepository userRepository, PasswordMatcher passwordMatcher) {
+    public AuthService(UserRepository userRepository, PasswordService passwordService, JwtUtil jwtUtil) {
         this.userRepository = userRepository;
-        this.passwordMatcher = passwordMatcher;
+        this.passwordService = passwordService;
+        this.jwtUtil = jwtUtil;
     }
 
     // Sửa kiểu trả về từ LoginResponse -> LoginResponse
@@ -25,21 +27,19 @@ public class AuthService {
         try {
             validateLoginRequest(request);
 
-            // Scenario 1: Login với username không tồn tại
+            // Scenario 1: Login with a non-existent username
             UserEntity user = userRepository.findByUsername(request.getUsername())
                     // Dùng UsernameNotFoundException đã import
                     .orElseThrow(() -> new UsernameNotFoundException("username not found"));
 
-            boolean ok = passwordMatcher.matches(request.getPassword(), user.getPassword());
+            boolean ok = passwordService.matches(request.getPassword(), user.getPassword());
             if (!ok) {
-                // Scenario 2: Login với password sai
-                throw new BadCredentialsException("wrong password");
+                // Scenario 2: Login with incorrect password
+                throw new RuntimeException("wrong password");
             }
 
-            // Scenario 3: Login thành công
-            // (Giả sử bạn có một dịch vụ tạo token)
-            // String token = jwtService.generateToken(user);
-            String token = "trong-tien-dep-trai"; // Ví dụ token
+            // Scenario 3: Login successful
+            String token = jwtUtil.generateToken(user);
             
             // Trả về LoginResponse như đề bài mong đợi
             return new LoginResponse(true, "login success", token);
@@ -51,7 +51,10 @@ public class AuthService {
             // Bắt lỗi Scenario 2 và trả về Response
             return new LoginResponse(false, e.getMessage());
         } catch (ValidationException | IllegalArgumentException e) {
-            // Bắt lỗi Scenario 4 và trả về Response
+            // Catch validation errors first
+            return new LoginResponse(false, e.getMessage());
+        } catch (RuntimeException e) {
+            // Catch authentication errors later
             return new LoginResponse(false, e.getMessage());
         }
     }

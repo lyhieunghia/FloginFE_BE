@@ -1,5 +1,7 @@
 package com.flogin.controller;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import com.flogin.dto.LoginRequest;
 import com.flogin.dto.LoginResponse;
 import com.flogin.service.AuthService;
@@ -10,12 +12,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * REST Controller xử lý authentication
+ * REST Controller for handling authentication
  * 
  * Endpoints:
- * - POST /api/auth/login - Đăng nhập
+ * - POST /api/auth/login - Login
  * 
- * CORS: Cho phép tất cả origins (*)
+ * CORS: Allows all origins (*)
  * Content-Type: application/json
  * 
  * Test coverage: 15/15 tests PASS ✓
@@ -32,7 +34,7 @@ public class AuthController {
     }
 
     /**
-     * Endpoint đăng nhập
+     * Login endpoint
      * 
      * Request:
      * - Method: POST
@@ -40,20 +42,20 @@ public class AuthController {
      * - Body: { "username": "string", "password": "string" }
      * 
      * Response:
-     * - 200 OK: Đăng nhập thành công
+     * - 200 OK: Login successful
      *   + Body: { "success": true, "message": "...", "token": "..." }
-     *   + Header: X-Auth-Token: [token value]
-     * - 401 UNAUTHORIZED: Đăng nhập thất bại
+     *   + Cookie: jwt=[token]; HttpOnly; Path=/; Max-Age=86400
+     * - 401 UNAUTHORIZED: Login failed
      *   + Body: { "success": false, "message": "..." }
-     * - 400 BAD REQUEST: Validation lỗi (username/password rỗng)
+     * - 400 BAD REQUEST: Validation error (empty username/password)
      * 
      * CORS headers:
      * - Access-Control-Allow-Origin: *
      * - Access-Control-Allow-Methods: POST, OPTIONS
      * - Access-Control-Allow-Headers: *
      * 
-     * @param request LoginRequest với username và password
-     * @return ResponseEntity chứa LoginResponse và HTTP status code
+     * @param request LoginRequest with username and password
+     * @return ResponseEntity containing LoginResponse and HTTP status code
      */
     @PostMapping(
         value = "/login",
@@ -61,21 +63,27 @@ public class AuthController {
         produces = MediaType.APPLICATION_JSON_VALUE
     )
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
-        // Gọi service để xác thực
+        // Call the service for authentication
         LoginResponse response = authService.authenticate(request);
         
         if (response.isSuccess()) {
-            // TC1: Login thành công → 200 OK + X-Auth-Token header
+            // TC1: Login successful → 200 OK + jwt cookie
+            ResponseCookie cookie = ResponseCookie.from("jwt", response.getToken())
+                    .httpOnly(true)
+                    .path("/")
+                    .maxAge(24 * 60 * 60) // 24 hours
+                    .build();
             return ResponseEntity.ok()
-                    .header("X-Auth-Token", response.getToken())
+                    .header(HttpHeaders.SET_COOKIE, cookie.toString())
                     .body(response);
         } else {
-            // TC2-3: Login thất bại → 401 UNAUTHORIZED
+            // TC2-3: Login failed → 401 UNAUTHORIZED
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(response);
         }
         
-        // TC4: Request body rỗng → 400 BAD REQUEST (tự động do @Valid)
-        // TC11: Content-Type không hợp lệ → 415 UNSUPPORTED_MEDIA_TYPE (tự động do consumes)
+        // TC4: Empty request body → 400 BAD REQUEST (handled by @Valid)
+        // TC11: Invalid Content-Type → 415 UNSUPPORTED_MEDIA_TYPE (handled by consumes)
     }
 }
+
