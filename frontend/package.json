@@ -5,19 +5,24 @@
   "dependencies": {
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.0",
+    "@testing-library/react": "^14.3.1",
     "@testing-library/user-event": "^13.5.0",
-    "axios": "^1.12.2",
+    "axios": "^1.13.2",
     "jest": "^27.5.1",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.25.1",
     "react-scripts": "5.0.1",
+    "wait-on": "^9.0.3",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
+    "test:coverage": "react-scripts test --coverage --watchAll=false",
+    "test:e2e": "cypress run",
+    "test:e2e:headed": "cypress open",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -36,6 +41,26 @@
       "last 1 chrome version",
       "last 1 firefox version",
       "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "cross-env": "^10.1.0",
+    "cypress": "^15.7.0",
+    "msw": "^2.12.0",
+    "whatwg-fetch": "^3.6.20"
+  },
+  "jest": {
+    "transformIgnorePatterns": [
+      "node_modules/(?!axios)/"
+    ],
+    "coveragePathIgnorePatterns": [
+      "<rootDir>/src/index.js",
+      "<rootDir>/src/App.jsx",
+      "<rootDir>/src/setupTests.js",
+      "<rootDir>/src/jest.config.js",
+      "<rootDir>/src/jest.setup.js"
     ]
   }
 }

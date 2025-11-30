@@ -1,0 +1,170 @@
+name: Complete CI/CD Pipeline
+
+on:
+  push:
+    branches: [ develop, main ]
+  pull_request:
+    branches: [ develop, main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_DATABASE: flogin_db
+          MYSQL_ROOT_PASSWORD: 123456
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -p123456"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/flogin_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 123456
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.17.0'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+            
+      - name: Make Maven wrapper executable
+        working-directory: backend
+        run: chmod +x ./mvnw
+            
+      - name: Install backend dependencies
+        working-directory: backend
+        run: ./mvnw -B clean compile -DskipTests
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Run backend unit tests
+        working-directory: backend
+        run: ./mvnw -B test
+
+      - name: Run frontend unit tests with coverage
+        working-directory: frontend
+        run: npm run test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./frontend/coverage/lcov.info,./backend/target/site/jacoco/jacoco.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_DATABASE: flogin_db
+          MYSQL_ROOT_PASSWORD: 123456
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -p123456"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/flogin_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 123456
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.17.0'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+            
+      - name: Make Maven wrapper executable
+        working-directory: backend
+        run: chmod +x ./mvnw
+            
+      - name: Install backend dependencies
+        working-directory: backend
+        run: ./mvnw -B clean compile -DskipTests      
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build backend
+        working-directory: backend
+        run: ./mvnw -B package -DskipTests
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+      - name: Start backend
+        working-directory: backend
+        run: ./mvnw spring-boot:run &
+
+      - name: Start frontend
+        working-directory: frontend
+        run: npm start &
+
+      - name: Wait for backend 
+        working-directory: frontend
+        run: npx wait-on --timeout 120000 --interval 1000 http://localhost:8080/api/test/health
+
+      - name: Wait for frontend
+        working-directory: frontend
+        run: npx wait-on --timeout 60000 --interval 1000 http://localhost:3000
+
+      - name: Run E2E tests with Cypress      
+        working-directory: frontend
+        run: npm run test:e2e
+        env:
+          SPRING_DATASOURCE_URL: ${{ env.SPRING_DATASOURCE_URL }}
+          SPRING_DATASOURCE_USERNAME: ${{ env.SPRING_DATASOURCE_USERNAME }}
+          SPRING_DATASOURCE_PASSWORD: ${{ env.SPRING_DATASOURCE_PASSWORD }}
+
+      - name: Upload E2E screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-screenshots
+          path: frontend/cypress/screenshots
+          if-no-files-found: ignore
+          retention-days: 7
+        timeout-minutes: 5
