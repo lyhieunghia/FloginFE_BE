@@ -7,7 +7,7 @@ on:
     branches: [ develop, main ]
 
 jobs:
-  unit-tests:
+  test:
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
@@ -68,17 +68,11 @@ jobs:
         working-directory: frontend
         run: npm run test:coverage
 
-      - name: Upload unit test reports
-        if: always()
-        uses: actions/upload-artifact@v4
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
         with:
-          name: unit-test-reports
-          path: |
-            backend/target/surefire-reports/
-            frontend/coverage/
-          if-no-files-found: ignore
-          retention-days: 30
-        timeout-minutes: 5
+        files: ./frontend/coverage/lcov.info,./backend/target/site/jacoco/jacoco.xml
+        token: ${{ secrets.CODECOV_TOKEN }}
 
   e2e:
     runs-on: ubuntu-latest
@@ -184,25 +178,3 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
         timeout-minutes: 5
-
-      - name: Upload e2e test reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: e2e-test-reports
-          path: |
-            backend/target/surefire-reports/
-            frontend/coverage/
-          if-no-files-found: ignore
-          retention-days: 30
-        timeout-minutes: 5
-
-      - name: Upload coverage to Codecov
-        if: always()
-        uses: codecov/codecov-action@v4
-        with:
-          files: ./frontend/coverage/lcov.info,./backend/target/site/jacoco/jacoco.xml
-          flags: e2e
-          fail_ci_if_error: false
-          token: ${{ secrets.CODECOV_TOKEN }}
-        timeout-minutes: 10
