@@ -13,6 +13,12 @@ export const options = {
         { duration: '1m', target: 800 },
         { duration: '1m', target: 1000 },
         { duration: '1m', target: 1200 },
+        { duration: '1m', target: 1500 },  // Tăng thêm để tìm breaking point
+        { duration: '1m', target: 2000 },  // Tăng thêm để tìm breaking point
+        { duration: '1m', target: 2500 },  // Tăng thêm để tìm breaking point
+        { duration: '1m', target: 3000 },  // Tăng thêm để tìm breaking point
+        { duration: '2m', target: 3000 },  // Hold at peak để quan sát
+        { duration: '1m', target: 0 },     // Ramp down
       ],
       gracefulRampDown: '30s',
     },
