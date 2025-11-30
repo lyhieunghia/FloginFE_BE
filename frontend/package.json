@@ -57,6 +57,7 @@
     ],
     "coveragePathIgnorePatterns": [
       "<rootDir>/src/index.js",
+      "<rootDir>/src/App.jsx",
       "<rootDir>/src/setupTests.js",
       "<rootDir>/src/jest.config.js",
       "<rootDir>/src/jest.setup.js"

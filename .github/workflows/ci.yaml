@@ -168,13 +168,3 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
         timeout-minutes: 5
-
-      - name: Upload E2E videos
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: cypress-videos
-          path: frontend/cypress/videos
-          if-no-files-found: ignore
-          retention-days: 7
-        timeout-minutes: 5

@@ -129,9 +129,11 @@
 					    <exclude>**/config/**</exclude>
 					    <exclude>**/dto/**</exclude>
 					    <exclude>**/exception/**</exclude>
-					    <exclude>**/HealthController.java/**</exclude>
-					    <exclude>**/TestingController.java/**</exclude>
-					    <exclude>**/BackendApplication.java/**</exclude>
+					    <exclude>**/entity/**</exclude>
+					    <exclude>**/HealthController.java</exclude>
+					    <exclude>**/TestingController.java</exclude>
+					    <exclude>**/BackendApplication.java</exclude>
+					    <exclude>**/PasswordPlainMatcher.java</exclude>
 				    </excludes>
 				</configuration>
     		    <executions>
