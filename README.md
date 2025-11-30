@@ -47,8 +47,8 @@ cd FloginFE_BE
 
 ### 3. Set node version
 ```bash
-nvm install 18.17.0
-nvm use 18.17.0
+nvm install 20.17.0
+nvm use 20.17.0
 ```
 ### 4. Install Dependencies
 ```bash
@@ -71,8 +71,39 @@ npm start
 Start Backend (Spring Boot)
 ```bash
 cd backend
-mvn spring-boot:run
+./mvnw spring-boot:run
 
+```
+
+### 6. Run tests
+Frontend
+```bash
+cd frontend
+npm run test:coverage
+```
+Backend 
+```bash
+cd backend
+./mvnw test
+```
+
+E2E
+Start Frontend (React)
+```bash
+cd frontend
+npm start
+```
+
+Start Backend (Spring Boot)
+```bash
+cd backend
+./mvnw spring-boot:run
+
+```
+
+```bash
+cd frontend 
+npm run test:2e2
 ```
 ---
 
