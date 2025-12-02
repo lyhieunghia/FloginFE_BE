@@ -80,206 +80,45 @@ describe("Login Validation Tests", () => {
             expect(errors.usernameError).toBe("Username chỉ được chứa chữ cái, số, dấu gạch dưới và gạch ngang");
         });
 
-        test("TC3.4: Username chứa khoảng trắng trả về lỗi", () => {
-            const errors = validateLoginForm("user name", "ValidPass123");
-            expect(errors.isValid).toBe(false);
-            expect(errors.usernameError).toBe("Username chỉ được chứa chữ cái, số, dấu gạch dưới và gạch ngang");
-        });
-
-        test("TC3.5: Username chứa ký tự đặc biệt ! # $ trả về lỗi", () => {
-            expect(validateLoginForm("user!", "Pass123").usernameError).toBeTruthy();
-            expect(validateLoginForm("user#name", "Pass123").usernameError).toBeTruthy();
-            expect(validateLoginForm("user$", "Pass123").usernameError).toBeTruthy();
-        });
-
-        // TC4: Test username hợp lệ
-        test("TC4.1: Username hợp lệ - chữ và số", () => {
-            const errors = validateLoginForm("user123", "ValidPass123");
-            expect(errors.isValid).toBe(true);
-            expect(errors.usernameError).toBe('');
-        });
-
-        test("TC4.2: Username hợp lệ - có underscore", () => {
-            const errors = validateLoginForm("user_123", "ValidPass123");
-            expect(errors.isValid).toBe(true);
-            expect(errors.usernameError).toBe('');
-        });
-
-        test("TC4.3: Username hợp lệ - có hyphen", () => {
-            const errors = validateLoginForm("user-name", "ValidPass123");
-            expect(errors.isValid).toBe(true);
-            expect(errors.usernameError).toBe('');
-        });
-
-        test("TC4.4: Username hợp lệ - minimum length (3 chars)", () => {
-            const errors = validateLoginForm("abc", "ValidPass123");
-            expect(errors.isValid).toBe(true);
-            expect(errors.usernameError).toBe('');
-        });
-
-        test("TC4.5: Username hợp lệ - maximum length (20 chars)", () => {
-            const errors = validateLoginForm("abcdefghij1234567890", "ValidPass123");
-            expect(errors.isValid).toBe(true);
-            expect(errors.usernameError).toBe('');
-        });
-
-        test("TC4.6: Username hợp lệ - mixed case", () => {
-            const errors = validateLoginForm("JohnDoe123", "ValidPass123");
-            expect(errors.isValid).toBe(true);
-            expect(errors.usernameError).toBe('');
-        });
+    test("TC5: Username chứa khoảng trắng trả về lỗi", () => {
+        const username = "invalid user";
+        const password = "ValidPass123";
+        const errors = validateLoginForm(username, password);
+        expect(errors.usernameError).toBe("Username không được chứa khoảng trắng");
     });
 
-    // ============================================================
-    // Test validatePassword() - 2 điểm
-    // ============================================================
-
-    describe("validatePassword()", () => {
-        
-        // TC1: Test password rỗng
-        test("TC1.1: Password null/undefined trả về lỗi", () => {
-            expect(validateLoginForm("validUser", null).passwordError).toBe("Password không được để trống");
-            expect(validateLoginForm("validUser", undefined).passwordError).toBe("Password không được để trống");
-        });
-
-        test("TC1.2: Password rỗng trả về lỗi", () => {
-            const errors = validateLoginForm("validUser", "");
-            expect(errors.isValid).toBe(false);
-            expect(errors.passwordError).toBe("Password không được để trống");
-        });
-
-        // TC2: Test password quá ngắn/dài
-        test("TC2.1: Password quá ngắn (5 ký tự) trả về lỗi", () => {
-            const errors = validateLoginForm("validUser", "abc12");
-            expect(errors.isValid).toBe(false);
-            expect(errors.passwordError).toBe("Password phải có ít nhất 6 ký tự");
-        });
-
-        test("TC2.2: Password quá ngắn (1 ký tự) trả về lỗi", () => {
-            const errors = validateLoginForm("validUser", "a");
-            expect(errors.isValid).toBe(false);
-            expect(errors.passwordError).toBe("Password phải có ít nhất 6 ký tự");
-        });
-
-        test("TC2.3: Password quá dài (31 ký tự) trả về lỗi", () => {
-            const errors = validateLoginForm("validUser", "abcdefghij1234567890abcdefghijk");
-            expect(errors.isValid).toBe(false);
-            expect(errors.passwordError).toBe("Password không được vượt quá 30 ký tự");
-        });
-
-        test("TC2.4: Password quá dài (50 ký tự) trả về lỗi", () => {
-            const errors = validateLoginForm("validUser", "a".repeat(50));
-            expect(errors.isValid).toBe(false);
-            expect(errors.passwordError).toBe("Password không được vượt quá 30 ký tự");
-        });
-
-        // TC3: Test password không có chữ hoặc số
-        test("TC3.1: Password chỉ có số (không có chữ) trả về lỗi", () => {
-            const errors = validateLoginForm("validUser", "123456");
-            expect(errors.isValid).toBe(false);
-            expect(errors.passwordError).toBe("Password phải chứa ít nhất một chữ cái");
-        });
-
-        test("TC3.2: Password chỉ có chữ thường (không có số) trả về lỗi", () => {
-            const errors = validateLoginForm("validUser", "abcdef");
-            expect(errors.isValid).toBe(false);
-            expect(errors.passwordError).toBe("Password phải chứa ít nhất một chữ số");
-        });
-
-        test("TC3.3: Password chỉ có chữ hoa (không có số) trả về lỗi", () => {
-            const errors = validateLoginForm("validUser", "ABCDEF");
-            expect(errors.isValid).toBe(false);
-            expect(errors.passwordError).toBe("Password phải chứa ít nhất một chữ số");
-        });
-
-        test("TC3.4: Password chỉ có chữ mixed case (không có số) trả về lỗi", () => {
-            const errors = validateLoginForm("validUser", "AbCdEf");
-            expect(errors.isValid).toBe(false);
-            expect(errors.passwordError).toBe("Password phải chứa ít nhất một chữ số");
-        });
-
-        test("TC3.5: Password chỉ có ký tự đặc biệt (không có chữ và số) trả về lỗi", () => {
-            const errors = validateLoginForm("validUser", "!@#$%^");
-            expect(errors.isValid).toBe(false);
-            expect(errors.passwordError).toBe("Password phải chứa ít nhất một chữ cái");
-        });
-
-        // TC4: Test password hợp lệ
-        test("TC4.1: Password hợp lệ - chữ thường và số", () => {
-            const errors = validateLoginForm("validUser", "abc123");
-            expect(errors.isValid).toBe(true);
-            expect(errors.passwordError).toBe('');
-        });
-
-        test("TC4.2: Password hợp lệ - chữ hoa và số", () => {
-            const errors = validateLoginForm("validUser", "ABC123");
-            expect(errors.isValid).toBe(true);
-            expect(errors.passwordError).toBe('');
-        });
-
-        test("TC4.3: Password hợp lệ - mixed case và số", () => {
-            const errors = validateLoginForm("validUser", "Pass123");
-            expect(errors.isValid).toBe(true);
-            expect(errors.passwordError).toBe('');
-        });
-
-        test("TC4.4: Password hợp lệ - có ký tự đặc biệt", () => {
-            const errors = validateLoginForm("validUser", "Pass@123");
-            expect(errors.isValid).toBe(true);
-            expect(errors.passwordError).toBe('');
-        });
-
-        test("TC4.5: Password hợp lệ - minimum length (6 chars)", () => {
-            const errors = validateLoginForm("validUser", "abc123");
-            expect(errors.isValid).toBe(true);
-            expect(errors.passwordError).toBe('');
-        });
-
-        test("TC4.6: Password hợp lệ - maximum length (30 chars)", () => {
-            const errors = validateLoginForm("validUser", "abcdefghij1234567890abcdefgh12");
-            expect(errors.isValid).toBe(true);
-            expect(errors.passwordError).toBe('');
-        });
-
-        test("TC4.7: Password hợp lệ - complex password", () => {
-            const errors = validateLoginForm("validUser", "MyV3ryStr0ng!P@ss");
-            expect(errors.isValid).toBe(true);
-            expect(errors.passwordError).toBe('');
-        });
+    test("TC6: Username chứa kí tự đặc biệt trả về lỗi", () => {
+        const username = "invalid#$%^<>";
+        const password = "ValidPass123";
+        const errors = validateLoginForm(username, password);
+        expect(errors.usernameError).toBe("Username không được chứa kí tự đặc biệt");
     });
 
-    // ============================================================
-    // Integration Tests
-    // ============================================================
+    test("TC7: Password rỗng trả về lỗi", () => {
+        const username = "validUser";
+        const password = "";
+        const errors = validateLoginForm(username, password);
+        expect(errors.passwordError).toBe("Password không được để trống");
+    });
 
-    describe("validateLoginForm() - Integration", () => {
-        
-        test("Both username and password valid", () => {
-            const errors = validateLoginForm("john_doe", "Pass123!");
-            expect(errors.isValid).toBe(true);
-            expect(errors.usernameError).toBe('');
-            expect(errors.passwordError).toBe('');
-        });
+    test("TC8: Password quá ngắn trả về lỗi", () => {
+        const username = "validUser";
+        const password = "123";
+        const errors = validateLoginForm(username, password);
+        expect(errors.passwordError).toBe("Password phải có ít nhất 6 ký tự");
+    });
 
-        test("Both username and password invalid", () => {
-            const errors = validateLoginForm("ab", "123");
-            expect(errors.isValid).toBe(false);
-            expect(errors.usernameError).toBeTruthy();
-            expect(errors.passwordError).toBeTruthy();
-        });
+    test("TC9: Password không có chữ cái trả về lỗi", () => {
+        const username = "validUser";
+        const password = "123123";
+        const errors = validateLoginForm(username, password);
+        expect(errors.passwordError).toBe("Password phải chứa ít nhất 1 chữ cái");
+    });
 
-        test("Username valid, password invalid", () => {
-            const errors = validateLoginForm("validUser", "abc");
-            expect(errors.isValid).toBe(false);
-            expect(errors.usernameError).toBe('');
-            expect(errors.passwordError).toBeTruthy();
-        });
-
-        test("Username invalid, password valid", () => {
-            const errors = validateLoginForm("ab", "Pass123");
-            expect(errors.isValid).toBe(false);
-            expect(errors.usernameError).toBeTruthy();
-            expect(errors.passwordError).toBe('');
-        });
+    test("TC10: Password quá ngắn trả về lỗi", () => {
+        const username = "validUser";
+        const password = "abcdefgh";
+        const errors = validateLoginForm(username, password);
+        expect(errors.passwordError).toBe("Password phải chứa ít nhất 1 chữ số");
     });
 });

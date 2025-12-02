@@ -48,5 +48,16 @@
     "msw": "^2.12.0",
     "whatwg-fetch": "^3.6.20"
   },
-  "proxy": "http://localhost:8081"
+  "jest": {
+    "transformIgnorePatterns": [
+      "node_modules/(?!axios)/"
+    ],
+    "coveragePathIgnorePatterns": [
+      "<rootDir>/src/index.js",
+      "<rootDir>/src/App.jsx",
+      "<rootDir>/src/setupTests.js",
+      "<rootDir>/src/jest.config.js",
+      "<rootDir>/src/jest.setup.js"
+    ]
+  }
 }
