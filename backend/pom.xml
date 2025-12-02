@@ -42,11 +42,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
-		<dependency>
-    		<groupId>com.h2database</groupId>
-    		<artifactId>h2</artifactId>
-    		<scope>runtime</scope>
-		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -138,12 +133,32 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
+					<mainClass>com.flogin.FloginApplication</mainClass>
 					<excludes>
 						<exclude>
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
 						</exclude>
 					</excludes>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<argLine>
+						-XX:+EnableDynamicAgentLoading
+						@{argLine}
+					</argLine>
+					<!-- Hiển thị chi tiết từng test với @DisplayName -->
+					<reportFormat>plain</reportFormat>
+					<useFile>false</useFile>
+					<trimStackTrace>false</trimStackTrace>
+					<properties>
+						<configurationParameters>
+							junit.jupiter.displayname.generator.default = org.junit.jupiter.api.DisplayNameGenerator$ReplaceUnderscores
+						</configurationParameters>
+					</properties>
 				</configuration>
 			</plugin>
 			<plugin>

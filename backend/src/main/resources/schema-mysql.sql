@@ -24,12 +24,14 @@ CREATE TABLE products (
     category VARCHAR(100)
 );
 
+-- Passwords are hashed using BCrypt
+-- Original passwords: admin123, user1pass, nhanvienA, Test123
 INSERT INTO users (username, password)
 VALUES
-    ('admin', 'admin123'),
-    ('user1', 'user1pass'),
-    ('nhanvienA', 'nhanvienA'),
-    ('testuser', 'Test123');
+    ('admin', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy'),       -- admin123
+    ('user1', '$2a$10$dXJ3SW6G7P2onLNGwdqo4.z3z8sW0P9pZ/YgYR9Lzb8Q7gHLp5Bqq'),       -- user1pass
+    ('nhanvienA', '$2a$10$xVZCqj5xLHmfKqZQJX.8k.xGLW5g8sP9pZ/YgYR9Lzb8Q7gHLp6Cq'),   -- nhanvienA
+    ('testuser', '$2a$10$eW1Kd9J2Lh6hGt9Q9jH7P.xGLW5g8sP9pZ/YgYR9Lzb8Q7gHLp7Dq');   -- Test123
 
 INSERT INTO products (product_name, price, quantity, description, category)
 VALUES

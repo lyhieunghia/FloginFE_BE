@@ -48,7 +48,7 @@ export default function LoginPage({ mockApi, onSuccess }) {
 
       if (result.success) {
         // Login successful
-        setLoginMessage(result.message && 'Đăng nhập thành công');
+        setLoginMessage(result.message || 'Đăng nhập thành công');
         setIsSuccess(true);
         setLoading(false);
 
@@ -69,12 +69,12 @@ export default function LoginPage({ mockApi, onSuccess }) {
         }
       } else {
         // Login failed
-        setLoginMessage(result.message && 'Đăng nhập thất bại');
+        setLoginMessage(result.message || 'Đăng nhập thất bại');
         setIsSuccess(false);
       }
     } catch (error) {
       console.error('Login error:', error);
-      setLoginMessage(error.message && 'Network error, please try again');
+      setLoginMessage(error.message || 'Network error, please try again');
       setIsSuccess(false);
     } finally {
       setLoading(false);

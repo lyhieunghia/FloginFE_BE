@@ -1,21 +1,20 @@
 import React from 'react';
-import Login from './components/Login';
-import { loginApi } from './services/apiService';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import LoginPage from './pages/LoginPage';
+import ProductPage from './pages/ProductPage';
 import './App.css';
 
 /**
  * Main App Component quản lý authentication flow và routing
  */
 export default function App() {
-  const handleLoginSuccess = (token, userData) => {
-    console.log('✅ Login successful!');
-    console.log('📝 Token:', token);
-    console.log('👤 User data:', userData);
-    // TODO: navigate or update global state if needed
-  };
   return (
     <div className="App">
-      <Login mockApi={loginApi} onSuccess={handleLoginSuccess} />
+      <Routes>
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/products" element={<ProductPage />} />
+      </Routes>
     </div>
   );
 }

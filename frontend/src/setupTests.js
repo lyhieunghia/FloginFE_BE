@@ -4,6 +4,11 @@
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
 
-// Thêm 2 dòng này để sửa lỗi CORS của JSDOM
-import axios from 'axios';
-axios.defaults.adapter = 'http';
+// Mock axios for tests
+jest.mock('axios', () => ({
+    default: {
+        defaults: {
+            adapter: 'http'
+        }
+    }
+}));
