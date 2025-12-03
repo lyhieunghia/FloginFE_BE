@@ -1,7 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
-import ProductPage from './pages/ProductPage';
+import { ProductPage } from './pages/ProductPage';
 import './App.css';
 
 /**
