@@ -4,6 +4,9 @@
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
 
+// Mock window.scrollTo for jsdom compatibility
+window.scrollTo = jest.fn();
+
 // Mock axios for tests
 jest.mock('axios', () => ({
     default: {
