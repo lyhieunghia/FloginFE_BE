@@ -1,15 +1,22 @@
 import ProductPage from "../support/page/ProductPage";
 
+// Persist products across all tests in this suite
+let products = [];
+
 describe('Product E2E Tests', () => {
     const productPage = new ProductPage();
-    let products = [];
+
+    before(() => {
+        // Reset products at the start of the test suite
+        products = [];
+    });
 
     beforeEach(() => {
-        // Mock GET /api/products - return current products array
+        // Mock GET /api/products - return current products array directly
         cy.intercept('GET', '**/api/products', (req) => {
             req.reply({
                 statusCode: 200,
-                body: { data: products }
+                body: products
             });
         }).as('getProducts');
         

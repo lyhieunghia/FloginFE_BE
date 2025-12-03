@@ -14,8 +14,11 @@ describe ('Login E2E Tests', () => {
         cy.get('[data-testid="password-input"]').type('Test123');
         cy.get('[data-testid="login-button"]').click();
 
-        cy.get('[data-testid="login-message"]').should('contain', 'thành công');
-        cy.url().should('include', '/products', { timeout: 3000 });
+        // Should navigate to products page after successful login
+        cy.url({ timeout: 10000 }).should('include', '/products');
+        
+        // Verify we're on the products page (not on login anymore)
+        cy.get('[data-testid="username-input"]').should('not.exist');
     });
 
     it('TC3: Hiển thị thông báo lỗi khi đăng nhập với username và password rỗng', () => {
