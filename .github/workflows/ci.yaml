@@ -127,6 +127,14 @@ jobs:
         working-directory: frontend
         run: npm ci
 
+      - name: Install Cypress binary
+        working-directory: frontend
+        run: |
+          echo "Installing Cypress binary..."
+          npx cypress install
+          npx cypress verify
+          echo "✅ Cypress installed successfully"
+
       - name: Build backend
         working-directory: backend
         run: ./mvnw -B package -DskipTests
@@ -144,18 +152,51 @@ jobs:
 
       - name: Wait for MySQL
         working-directory: frontend
-        run: npx wait-on tcp:127.0.0.1:3306 --timeout 180000 --interval 1000
+        run: |
+          echo "Waiting for MySQL to be ready..."
+          npx wait-on tcp:127.0.0.1:3306 --timeout 180000 --interval 1000
+          echo "✅ MySQL is ready"
+
+      - name: Verify MySQL connection
+        run: |
+          echo "Testing MySQL connection..."
+          mysql -h 127.0.0.1 -u root -p123456 -e "SHOW DATABASES;" || {
+            echo "❌ MySQL connection failed"
+            exit 1
+          }
+          echo "✅ MySQL connection successful"
 
       - name: Start backend
         working-directory: backend
         run: |
-          echo "Starting backend..."
+          echo "========================================"
+          echo "Starting backend with Spring Boot..."
+          echo "========================================"
+          echo "Environment:"
+          echo "  Database URL: $SPRING_DATASOURCE_URL"
+          echo "  Java version: $(java -version 2>&1 | head -n 1)"
+          echo "  JAR file: $(ls -lh target/*.jar)"
+          echo ""
           nohup java -jar target/*.jar > backend.log 2>&1 &
-          echo $! > backend.pid
-          echo "Backend started with PID $(cat backend.pid)"
-          sleep 5
-          echo "Initial backend log:"
-          tail -20 backend.log
+          BACKEND_PID=$!
+          echo $BACKEND_PID > backend.pid
+          echo "Backend started with PID $BACKEND_PID"
+          echo ""
+          echo "Waiting 10 seconds for initial startup..."
+          sleep 10
+          echo ""
+          echo "Checking if backend process is still running..."
+          if ps -p $BACKEND_PID > /dev/null; then
+            echo "✅ Backend process is running"
+          else
+            echo "❌ Backend process died during startup!"
+            echo "Backend log:"
+            cat backend.log
+            exit 1
+          fi
+          echo ""
+          echo "Initial backend log (last 30 lines):"
+          tail -30 backend.log
 
       - name: Start frontend
         working-directory: frontend
