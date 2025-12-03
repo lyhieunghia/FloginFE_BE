@@ -144,27 +144,52 @@ jobs:
 
       - name: Start backend (with robust readiness check)
         working-directory: backend
+        env:
+          SPRING_DATASOURCE_URL: ${{ env.SPRING_DATASOURCE_URL }}
+          SPRING_DATASOURCE_USERNAME: ${{ env.SPRING_DATASOURCE_USERNAME }}
+          SPRING_DATASOURCE_PASSWORD: ${{ env.SPRING_DATASOURCE_PASSWORD }}
+          SPRING_PROFILES_ACTIVE: ci
         run: |
-          echo "Starting backend..."
+          echo "Starting backend with CI profile..."
+          echo "DB URL: $SPRING_DATASOURCE_URL"
+          echo "DB User: $SPRING_DATASOURCE_USERNAME"
+          echo "Active Profile: $SPRING_PROFILES_ACTIVE"
+          
           nohup java -jar target/*.jar > backend.log 2>&1 &
           echo $! > backend.pid
           echo "Backend started with PID $(cat backend.pid)"
           
           echo "Waiting for backend to be fully ready (up to 120s)..."
+          READY=false
           for i in $(seq 1 60); do
-            # Check if "Started" appears in log (Spring Boot ready message)
-            if grep -q "Started" backend.log ; then
-              echo "✅ Backend application reported STARTED"
-              break
-            fi
             # Check if process is still running
             if ! ps -p $(cat backend.pid) > /dev/null 2>&1; then
-              echo "❌ Backend process died unexpectedly"
-              tail -100 backend.log
+              echo "❌ Backend process died unexpectedly after $((i*2)) seconds"
+              echo "========================================"
+              echo "Full backend log:"
+              cat backend.log
+              echo "========================================"
               exit 1
             fi
+            
+            # Check if "Started" appears in log (Spring Boot ready message)
+            if grep -q "Started FloginApplication" backend.log ; then
+              echo "✅ Backend application reported STARTED after $((i*2)) seconds"
+              READY=true
+              break
+            fi
+            
             sleep 2
           done
+          
+          if [ "$READY" = "false" ]; then
+            echo "❌ Backend did not start within 120 seconds"
+            echo "========================================"
+            echo "Backend log:"
+            tail -100 backend.log
+            echo "========================================"
+            exit 1
+          fi
           
           echo "Backend process status: $(ps -p $(cat backend.pid) -o pid,cmd --no-headers || echo 'not running')"
           echo "Last 50 lines of backend.log:"

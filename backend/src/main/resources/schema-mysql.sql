@@ -1,9 +1,10 @@
--- MySQL Schema for kiem_thu_phan_mem database
+-- MySQL Schema for flogin_db database
 -- This script will be used for production MySQL setup
 
-CREATE DATABASE IF NOT EXISTS kiem_thu_phan_mem;
-
-USE kiem_thu_phan_mem;
+-- Note: CREATE DATABASE and USE statements are commented out for CI/CD
+-- The database is created by the CI environment
+-- CREATE DATABASE IF NOT EXISTS flogin_db;
+-- USE flogin_db;
 
 DROP TABLE IF EXISTS users;
 
