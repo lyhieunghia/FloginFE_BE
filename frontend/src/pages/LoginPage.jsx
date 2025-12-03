@@ -62,9 +62,9 @@ export default function LoginPage({ mockApi, onSuccess }) {
         if (onSuccess) {
           onSuccess();
         } else {
-          // Default behavior: navigate to home after delay
+          // Default behavior: navigate to products after delay
           setTimeout(() => {
-            navigate('');
+            navigate('/products');
           }, 1500);
         }
       } else {
