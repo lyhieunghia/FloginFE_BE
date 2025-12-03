@@ -7,7 +7,6 @@ INSERT INTO users (username, password)
 VALUES
     ('admin', 'admin123'),
     ('user1', 'user1pass'),
-    ('testuser', 'Test123');
     ('nhanvienA', 'nhanvienA'),
     ('testuser', 'Test123');
 
