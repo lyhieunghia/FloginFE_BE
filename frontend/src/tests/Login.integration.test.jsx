@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
 import LoginPage from '../pages/LoginPage';
@@ -139,16 +139,18 @@ describe('Login Component Integration Tests', () => {
       });
     });
 
-    test('TC9: Hiển thị lỗi validation cho password quá ngắn', async () => {
+    test('TC9: Hiển thị lỗi khi password quá ngắn', async () => {
       render(<Login />);
 
       const usernameInput = screen.getByTestId('username-input');
       const passwordInput = screen.getByTestId('password-input');
       const submitButton = screen.getByTestId('login-button');
 
-      fireEvent.change(usernameInput, { target: { value: 'validuser' } });
-      fireEvent.change(passwordInput, { target: { value: '12345' } });
-      fireEvent.click(submitButton);
+      await act(async () => {
+        fireEvent.change(usernameInput, { target: { value: 'validuser' } });
+        fireEvent.change(passwordInput, { target: { value: '12345' } });
+        fireEvent.click(submitButton);
+      });
 
       await waitFor(() => {
         expect(screen.getByTestId('password-error')).toBeInTheDocument();
@@ -163,9 +165,11 @@ describe('Login Component Integration Tests', () => {
       const passwordInput = screen.getByTestId('password-input');
       const submitButton = screen.getByTestId('login-button');
 
-      fireEvent.change(usernameInput, { target: { value: 'user@name' } });
-      fireEvent.change(passwordInput, { target: { value: 'Test123' } });
-      fireEvent.click(submitButton);
+      await act(async () => {
+        fireEvent.change(usernameInput, { target: { value: 'user@name' } });
+        fireEvent.change(passwordInput, { target: { value: 'Test123' } });
+        fireEvent.click(submitButton);
+      });
 
       await waitFor(() => {
         expect(screen.getByTestId('username-error')).toBeInTheDocument();
@@ -179,9 +183,11 @@ describe('Login Component Integration Tests', () => {
       const passwordInput = screen.getByTestId('password-input');
       const submitButton = screen.getByTestId('login-button');
 
-      fireEvent.change(usernameInput, { target: { value: 'testuser' } });
-      fireEvent.change(passwordInput, { target: { value: '123456' } });
-      fireEvent.click(submitButton);
+      await act(async () => {
+        fireEvent.change(usernameInput, { target: { value: 'testuser' } });
+        fireEvent.change(passwordInput, { target: { value: '123456' } });
+        fireEvent.click(submitButton);
+      });
 
       await waitFor(() => {
         expect(screen.getByTestId('password-error')).toHaveTextContent(/chữ cái/i);
@@ -229,9 +235,11 @@ describe('Login Component Integration Tests', () => {
       const passwordInput = screen.getByTestId('password-input');
       const submitButton = screen.getByTestId('login-button');
 
-      fireEvent.change(usernameInput, { target: { value: 'testuser' } });
-      fireEvent.change(passwordInput, { target: { value: 'Test123' } });
-      fireEvent.click(submitButton);
+      await act(async () => {
+        fireEvent.change(usernameInput, { target: { value: 'testuser' } });
+        fireEvent.change(passwordInput, { target: { value: 'Test123' } });
+        fireEvent.click(submitButton);
+      });
 
       await waitFor(() => {
         expect(screen.getByTestId('login-message')).toHaveTextContent('thanh cong');
@@ -245,9 +253,11 @@ describe('Login Component Integration Tests', () => {
       const passwordInput = screen.getByTestId('password-input');
       const submitButton = screen.getByTestId('login-button');
 
-      fireEvent.change(usernameInput, { target: { value: 'testuser' } });
-      fireEvent.change(passwordInput, { target: { value: 'Test123' } });
-      fireEvent.click(submitButton);
+      await act(async () => {
+        fireEvent.change(usernameInput, { target: { value: 'testuser' } });
+        fireEvent.change(passwordInput, { target: { value: 'Test123' } });
+        fireEvent.click(submitButton);
+      });
 
       // Kiểm tra button disabled và có loading text
       expect(submitButton).toBeDisabled();
@@ -269,9 +279,11 @@ describe('Login Component Integration Tests', () => {
       const passwordInput = screen.getByTestId('password-input');
       const submitButton = screen.getByTestId('login-button');
 
-      fireEvent.change(usernameInput, { target: { value: 'testuser' } });
-      fireEvent.change(passwordInput, { target: { value: 'Test123' } });
-      fireEvent.click(submitButton);
+      await act(async () => {
+        fireEvent.change(usernameInput, { target: { value: 'testuser' } });
+        fireEvent.change(passwordInput, { target: { value: 'Test123' } });
+        fireEvent.click(submitButton);
+      });
 
       await waitFor(() => {
         expect(mockOnSuccess).toHaveBeenCalled();
@@ -287,9 +299,11 @@ describe('Login Component Integration Tests', () => {
       const passwordInput = screen.getByTestId('password-input');
       const submitButton = screen.getByTestId('login-button');
 
-      fireEvent.change(usernameInput, { target: { value: 'testuser' } });
-      fireEvent.change(passwordInput, { target: { value: 'Test123' } });
-      fireEvent.click(submitButton);
+      await act(async () => {
+        fireEvent.change(usernameInput, { target: { value: 'testuser' } });
+        fireEvent.change(passwordInput, { target: { value: 'Test123' } });
+        fireEvent.click(submitButton);
+      });
 
       await waitFor(() => {
         expect(localStorage.getItem('auth_token')).toBeTruthy();
@@ -311,9 +325,11 @@ describe('Login Component Integration Tests', () => {
       const passwordInput = screen.getByTestId('password-input');
       const submitButton = screen.getByTestId('login-button');
 
-      fireEvent.change(usernameInput, { target: { value: 'customuser' } });
-      fireEvent.change(passwordInput, { target: { value: 'CustomPass123' } });
-      fireEvent.click(submitButton);
+      await act(async () => {
+        fireEvent.change(usernameInput, { target: { value: 'customuser' } });
+        fireEvent.change(passwordInput, { target: { value: 'CustomPass123' } });
+        fireEvent.click(submitButton);
+      });
 
       await waitFor(() => {
         expect(customMockApi).toHaveBeenCalledWith('customuser', 'CustomPass123');
@@ -354,9 +370,11 @@ describe('Login Component Integration Tests', () => {
       const testUsername = 'john_doe123';
       const testPassword = 'SecurePass123';
 
-      fireEvent.change(usernameInput, { target: { value: testUsername } });
-      fireEvent.change(passwordInput, { target: { value: testPassword } });
-      fireEvent.click(submitButton);
+      await act(async () => {
+        fireEvent.change(usernameInput, { target: { value: testUsername } });
+        fireEvent.change(passwordInput, { target: { value: testPassword } });
+        fireEvent.click(submitButton);
+      });
 
       await waitFor(() => {
         expect(mockApi).toHaveBeenCalledWith(testUsername, testPassword);
@@ -369,7 +387,7 @@ describe('Login Component Integration Tests', () => {
         new Promise(resolve => setTimeout(() => resolve({
           success: true,
           token: 'test-token'
-        }), 1000))
+        }), 100))
       );
 
       render(<Login mockApi={mockApi} />);
@@ -378,19 +396,26 @@ describe('Login Component Integration Tests', () => {
       const passwordInput = screen.getByTestId('password-input');
       const submitButton = screen.getByTestId('login-button');
 
-      fireEvent.change(usernameInput, { target: { value: 'testuser' } });
-      fireEvent.change(passwordInput, { target: { value: 'Test123' } });
+      await act(async () => {
+        fireEvent.change(usernameInput, { target: { value: 'testuser' } });
+        fireEvent.change(passwordInput, { target: { value: 'Test123' } });
+      });
       
       // First submit
-      fireEvent.click(submitButton);
+      await act(async () => {
+        fireEvent.click(submitButton);
+      });
       
-      // Try to submit again while loading
+      // Check button is disabled
+      expect(submitButton).toBeDisabled();
+      
+      // Try to click again while loading - should not call API again
       fireEvent.click(submitButton);
       fireEvent.click(submitButton);
 
       await waitFor(() => {
         expect(mockApi).toHaveBeenCalledTimes(1);
-      });
+      }, { timeout: 3000 });
     });
 
     test('TC9: Token được lưu đúng format vào localStorage', async () => {
@@ -409,9 +434,11 @@ describe('Login Component Integration Tests', () => {
       const passwordInput = screen.getByTestId('password-input');
       const submitButton = screen.getByTestId('login-button');
 
-      fireEvent.change(usernameInput, { target: { value: 'testuser' } });
-      fireEvent.change(passwordInput, { target: { value: 'Test123' } });
-      fireEvent.click(submitButton);
+      await act(async () => {
+        fireEvent.change(usernameInput, { target: { value: 'testuser' } });
+        fireEvent.change(passwordInput, { target: { value: 'Test123' } });
+        fireEvent.click(submitButton);
+      });
 
       await waitFor(() => {
         const storedToken = localStorage.getItem('auth_token');
@@ -426,11 +453,13 @@ describe('Login Component Integration Tests', () => {
       const usernameInput = screen.getByTestId('username-input');
       const passwordInput = screen.getByTestId('password-input');
 
-      fireEvent.change(usernameInput, { target: { value: 'testuser' } });
-      fireEvent.change(passwordInput, { target: { value: 'Test123' } });
-      
-      // Press Enter on password field
-      fireEvent.submit(passwordInput.closest('form'));
+      await act(async () => {
+        fireEvent.change(usernameInput, { target: { value: 'testuser' } });
+        fireEvent.change(passwordInput, { target: { value: 'Test123' } });
+        
+        // Press Enter on password field
+        fireEvent.submit(passwordInput.closest('form'));
+      });
 
       await waitFor(() => {
         expect(mockOnSuccess).toHaveBeenCalled();
@@ -451,9 +480,11 @@ describe('Login Component Integration Tests', () => {
       const passwordInput = screen.getByTestId('password-input');
       const submitButton = screen.getByTestId('login-button');
 
-      fireEvent.change(usernameInput, { target: { value: 'testuser' } });
-      fireEvent.change(passwordInput, { target: { value: 'Test123' } });
-      fireEvent.click(submitButton);
+      await act(async () => {
+        fireEvent.change(usernameInput, { target: { value: 'testuser' } });
+        fireEvent.change(passwordInput, { target: { value: 'Test123' } });
+        fireEvent.click(submitButton);
+      });
 
       await waitFor(() => {
         const message = screen.getByTestId('login-message');
@@ -469,9 +500,11 @@ describe('Login Component Integration Tests', () => {
       const passwordInput = screen.getByTestId('password-input');
       const submitButton = screen.getByTestId('login-button');
 
-      fireEvent.change(usernameInput, { target: { value: 'wronguser' } });
-      fireEvent.change(passwordInput, { target: { value: 'wrongpass123' } });
-      fireEvent.click(submitButton);
+      await act(async () => {
+        fireEvent.change(usernameInput, { target: { value: 'wronguser' } });
+        fireEvent.change(passwordInput, { target: { value: 'wrongpass123' } });
+        fireEvent.click(submitButton);
+      });
 
       await waitFor(() => {
         const message = screen.getByTestId('login-message');
@@ -489,9 +522,11 @@ describe('Login Component Integration Tests', () => {
       const passwordInput = screen.getByTestId('password-input');
       const submitButton = screen.getByTestId('login-button');
 
-      fireEvent.change(usernameInput, { target: { value: 'testuser' } });
-      fireEvent.change(passwordInput, { target: { value: 'Test123' } });
-      fireEvent.click(submitButton);
+      await act(async () => {
+        fireEvent.change(usernameInput, { target: { value: 'testuser' } });
+        fireEvent.change(passwordInput, { target: { value: 'Test123' } });
+        fireEvent.click(submitButton);
+      });
 
       await waitFor(() => {
         const message = screen.getByTestId('login-message');
@@ -508,18 +543,22 @@ describe('Login Component Integration Tests', () => {
       const submitButton = screen.getByTestId('login-button');
 
       // Submit lần 1 với sai thông tin
-      fireEvent.change(usernameInput, { target: { value: 'wrong' } });
-      fireEvent.change(passwordInput, { target: { value: 'wrong123' } });
-      fireEvent.click(submitButton);
+      await act(async () => {
+        fireEvent.change(usernameInput, { target: { value: 'wrong' } });
+        fireEvent.change(passwordInput, { target: { value: 'wrong123' } });
+        fireEvent.click(submitButton);
+      });
 
       await waitFor(() => {
         expect(screen.getByTestId('login-message')).toHaveTextContent('sai thong tin');
       });
 
       // Submit lần 2 với đúng thông tin
-      fireEvent.change(usernameInput, { target: { value: 'testuser' } });
-      fireEvent.change(passwordInput, { target: { value: 'Test123' } });
-      fireEvent.click(submitButton);
+      await act(async () => {
+        fireEvent.change(usernameInput, { target: { value: 'testuser' } });
+        fireEvent.change(passwordInput, { target: { value: 'Test123' } });
+        fireEvent.click(submitButton);
+      });
 
       await waitFor(() => {
         const message = screen.getByTestId('login-message');
@@ -535,9 +574,11 @@ describe('Login Component Integration Tests', () => {
       const passwordInput = screen.getByTestId('password-input');
       const submitButton = screen.getByTestId('login-button');
 
-      fireEvent.change(usernameInput, { target: { value: 'testuser' } });
-      fireEvent.change(passwordInput, { target: { value: 'Test123' } });
-      fireEvent.click(submitButton);
+      await act(async () => {
+        fireEvent.change(usernameInput, { target: { value: 'testuser' } });
+        fireEvent.change(passwordInput, { target: { value: 'Test123' } });
+        fireEvent.click(submitButton);
+      });
 
       await waitFor(() => {
         const message = screen.getByTestId('login-message');
@@ -554,9 +595,11 @@ describe('Login Component Integration Tests', () => {
       const passwordInput = screen.getByTestId('password-input');
       const submitButton = screen.getByTestId('login-button');
 
-      fireEvent.change(usernameInput, { target: { value: 'wronguser' } });
-      fireEvent.change(passwordInput, { target: { value: 'wrongpass1' } });
-      fireEvent.click(submitButton);
+      await act(async () => {
+        fireEvent.change(usernameInput, { target: { value: 'wronguser' } });
+        fireEvent.change(passwordInput, { target: { value: 'wrongpass1' } });
+        fireEvent.click(submitButton);
+      });
 
       await waitFor(() => {
         const message = screen.getByTestId('login-message');
@@ -578,9 +621,11 @@ describe('Login Component Integration Tests', () => {
       const passwordInput = screen.getByTestId('password-input');
       const submitButton = screen.getByTestId('login-button');
 
-      fireEvent.change(usernameInput, { target: { value: 'testuser' } });
-      fireEvent.change(passwordInput, { target: { value: 'Test123' } });
-      fireEvent.click(submitButton);
+      await act(async () => {
+        fireEvent.change(usernameInput, { target: { value: 'testuser' } });
+        fireEvent.change(passwordInput, { target: { value: 'Test123' } });
+        fireEvent.click(submitButton);
+      });
 
       await waitFor(() => {
         const message = screen.getByTestId('login-message');
@@ -589,7 +634,9 @@ describe('Login Component Integration Tests', () => {
     });
 
     test('TC8: Loading indicator biến mất sau khi có error', async () => {
-      const mockApi = jest.fn().mockRejectedValue(new Error('Server error'));
+      const mockApi = jest.fn().mockImplementation(() =>
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Server error')), 100))
+      );
 
       render(<Login mockApi={mockApi} />);
 
@@ -597,9 +644,14 @@ describe('Login Component Integration Tests', () => {
       const passwordInput = screen.getByTestId('password-input');
       const submitButton = screen.getByTestId('login-button');
 
-      fireEvent.change(usernameInput, { target: { value: 'testuser' } });
-      fireEvent.change(passwordInput, { target: { value: 'Test123' } });
-      fireEvent.click(submitButton);
+      await act(async () => {
+        fireEvent.change(usernameInput, { target: { value: 'testuser' } });
+        fireEvent.change(passwordInput, { target: { value: 'Test123' } });
+      });
+      
+      await act(async () => {
+        fireEvent.click(submitButton);
+      });
 
       // Should be disabled during loading
       expect(submitButton).toBeDisabled();
@@ -618,17 +670,21 @@ describe('Login Component Integration Tests', () => {
       const submitButton = screen.getByTestId('login-button');
 
       // First submit with invalid data
-      fireEvent.change(usernameInput, { target: { value: 'ab' } });
-      fireEvent.click(submitButton);
+      await act(async () => {
+        fireEvent.change(usernameInput, { target: { value: 'ab' } });
+        fireEvent.click(submitButton);
+      });
 
       await waitFor(() => {
         expect(screen.getByTestId('username-error')).toBeInTheDocument();
       });
 
       // Now submit with valid data
-      fireEvent.change(usernameInput, { target: { value: 'testuser' } });
-      fireEvent.change(passwordInput, { target: { value: 'Test123' } });
-      fireEvent.click(submitButton);
+      await act(async () => {
+        fireEvent.change(usernameInput, { target: { value: 'testuser' } });
+        fireEvent.change(passwordInput, { target: { value: 'Test123' } });
+        fireEvent.click(submitButton);
+      });
 
       await waitFor(() => {
         expect(screen.queryByTestId('username-error')).not.toBeInTheDocument();
@@ -644,27 +700,33 @@ describe('Login Component Integration Tests', () => {
       const submitButton = screen.getByTestId('login-button');
 
       // Attempt 1
-      fireEvent.change(usernameInput, { target: { value: 'wrong1' } });
-      fireEvent.change(passwordInput, { target: { value: 'wrong123' } });
-      fireEvent.click(submitButton);
+      await act(async () => {
+        fireEvent.change(usernameInput, { target: { value: 'wrong1' } });
+        fireEvent.change(passwordInput, { target: { value: 'wrong123' } });
+        fireEvent.click(submitButton);
+      });
 
       await waitFor(() => {
         expect(screen.getByTestId('login-message')).toHaveClass('error');
       });
 
       // Attempt 2
-      fireEvent.change(usernameInput, { target: { value: 'wrong2' } });
-      fireEvent.change(passwordInput, { target: { value: 'wrong456' } });
-      fireEvent.click(submitButton);
+      await act(async () => {
+        fireEvent.change(usernameInput, { target: { value: 'wrong2' } });
+        fireEvent.change(passwordInput, { target: { value: 'wrong456' } });
+        fireEvent.click(submitButton);
+      });
 
       await waitFor(() => {
         expect(screen.getByTestId('login-message')).toHaveClass('error');
       });
 
       // Attempt 3 - should still work
-      fireEvent.change(usernameInput, { target: { value: 'testuser' } });
-      fireEvent.change(passwordInput, { target: { value: 'Test123' } });
-      fireEvent.click(submitButton);
+      await act(async () => {
+        fireEvent.change(usernameInput, { target: { value: 'testuser' } });
+        fireEvent.change(passwordInput, { target: { value: 'Test123' } });
+        fireEvent.click(submitButton);
+      });
 
       await waitFor(() => {
         expect(screen.getByTestId('login-message')).toHaveClass('success');
