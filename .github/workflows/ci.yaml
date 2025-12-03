@@ -131,6 +131,13 @@ jobs:
         working-directory: backend
         run: ./mvnw -B package -DskipTests
 
+      - name: Verify backend JAR
+        working-directory: backend
+        run: |
+          echo "Checking for JAR file..."
+          ls -lh target/*.jar
+          echo "JAR file found"
+
       - name: Build frontend
         working-directory: frontend
         run: npm run build
@@ -142,22 +149,42 @@ jobs:
       - name: Start backend
         working-directory: backend
         run: |
-          nohup ./mvnw spring-boot:run > backend.log 2>&1 &
-          echo "Backend started in background"
+          nohup java -jar target/*.jar > backend.log 2>&1 &
+          echo $! > backend.pid
+          echo "Backend started with PID $(cat backend.pid)"
 
       - name: Start frontend
         working-directory: frontend
         run: |
           nohup npm start > frontend.log 2>&1 &
-          echo "Frontend started in background"
+          echo $! > frontend.pid
+          echo "Frontend started with PID $(cat frontend.pid)"
 
-      - name: Wait for backend 
+      - name: Wait for backend health check
         working-directory: frontend
-        run: npx wait-on --timeout 300000 --interval 1000 http://localhost:8080/api/test/health
+        run: |
+          echo "Waiting for backend at http://localhost:8080/api/test/health"
+          npx wait-on --timeout 120000 --interval 2000 --httpTimeout 5000 http://localhost:8080/api/test/health || {
+            echo "Backend health check failed. Checking backend logs..."
+            tail -100 ../backend/backend.log
+            exit 1
+          }
+          echo "Backend is ready!"
+
+      - name: Verify backend with curl
+        run: |
+          curl -f http://localhost:8080/api/test/health || {
+            echo "Backend health endpoint not responding"
+            cat backend/backend.log
+            exit 1
+          }
 
       - name: Wait for frontend
         working-directory: frontend
-        run: npx wait-on --timeout 60000 --interval 1000 http://localhost:3000
+        run: |
+          echo "Waiting for frontend at http://localhost:3000"
+          npx wait-on --timeout 60000 --interval 1000 http://localhost:3000
+          echo "Frontend is ready!"
 
       - name: Run E2E tests with Cypress      
         working-directory: frontend
@@ -178,10 +205,19 @@ jobs:
         timeout-minutes: 5
 
       - name: Upload backend logs on failure
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: backend-logs
           path: backend/backend.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload frontend logs on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-logs
+          path: frontend/frontend.log
           if-no-files-found: ignore
           retention-days: 7
