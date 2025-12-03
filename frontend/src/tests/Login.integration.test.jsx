@@ -63,7 +63,9 @@ describe('Login Component Integration Tests', () => {
 
       const usernameInput = screen.getByTestId('username-input');
       
-      await userEvent.type(usernameInput, 'testuser');
+      await act(async () => {
+        await userEvent.type(usernameInput, 'testuser');
+      });
       
       expect(usernameInput).toHaveValue('testuser');
     });
@@ -73,7 +75,9 @@ describe('Login Component Integration Tests', () => {
 
       const passwordInput = screen.getByTestId('password-input');
       
-      await userEvent.type(passwordInput, 'Test123');
+      await act(async () => {
+        await userEvent.type(passwordInput, 'Test123');
+      });
       
       expect(passwordInput).toHaveValue('Test123');
       expect(passwordInput).toHaveAttribute('type', 'password');
@@ -85,8 +89,10 @@ describe('Login Component Integration Tests', () => {
       const usernameInput = screen.getByTestId('username-input');
       const passwordInput = screen.getByTestId('password-input');
 
-      await userEvent.type(usernameInput, 'john_doe');
-      await userEvent.type(passwordInput, 'SecurePass123');
+      await act(async () => {
+        await userEvent.type(usernameInput, 'john_doe');
+        await userEvent.type(passwordInput, 'SecurePass123');
+      });
 
       expect(usernameInput).toHaveValue('john_doe');
       expect(passwordInput).toHaveValue('SecurePass123');
