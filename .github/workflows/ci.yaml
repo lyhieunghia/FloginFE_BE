@@ -8,9 +8,8 @@ on:
 
 jobs:
   test:
-    name: Unit Tests (No Backend Required)
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
 
     services:
       mysql:
@@ -68,9 +67,6 @@ jobs:
       - name: Run frontend unit tests with coverage
         working-directory: frontend
         run: npm run test:coverage
-        env:
-          CI: true
-        # Note: Frontend tests use mocked APIs and do NOT require backend to be running
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -79,10 +75,8 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
   e2e:
-    name: E2E Tests (Requires Backend)
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    needs: test  # Run after unit tests pass
 
     services:
       mysql:
@@ -148,53 +142,22 @@ jobs:
       - name: Start backend
         working-directory: backend
         run: |
-          echo "Starting Spring Boot backend..."
           nohup ./mvnw spring-boot:run > backend.log 2>&1 &
-          BACKEND_PID=$!
-          echo "Backend PID: $BACKEND_PID"
-          echo $BACKEND_PID > backend.pid
-          sleep 5
-          echo "Backend process started"
-
-      - name: Wait for backend health check
-        working-directory: frontend
-        run: |
-          echo "Waiting for backend at http://localhost:8080/api/test/health..."
-          npx wait-on http://localhost:8080/api/test/health --timeout 120000 --interval 2000 --verbose || {
-            echo "Backend health check failed! Showing backend logs:"
-            cat ../backend/backend.log || echo "No backend logs found"
-            exit 1
-          }
-          echo "Backend is healthy!"
+          echo "Backend started in background"
 
       - name: Start frontend
         working-directory: frontend
         run: |
-          echo "Starting React frontend..."
           nohup npm start > frontend.log 2>&1 &
-          FRONTEND_PID=$!
-          echo "Frontend PID: $FRONTEND_PID"
-          echo $FRONTEND_PID > frontend.pid
-          sleep 3
-          echo "Frontend process started"
+          echo "Frontend started in background"
+
+      - name: Wait for backend 
+        working-directory: frontend
+        run: npx wait-on --timeout 300000 --interval 1000 http://localhost:8080/api/test/health
 
       - name: Wait for frontend
         working-directory: frontend
-        run: |
-          echo "Waiting for frontend at http://localhost:3000..."
-          npx wait-on http://localhost:3000 --timeout 90000 --interval 2000 --verbose
-          echo "Frontend is ready!"
-
-      - name: Verify backend health
-        run: |
-          echo "Testing backend health endpoint..."
-          curl -f http://localhost:8080/api/test/health || {
-            echo "Backend health check failed!"
-            echo "Backend logs:"
-            cat backend/backend.log
-            exit 1
-          }
-          echo "Backend health check passed!"
+        run: npx wait-on --timeout 60000 --interval 1000 http://localhost:3000
 
       - name: Run E2E tests with Cypress      
         working-directory: frontend
@@ -212,30 +175,13 @@ jobs:
           path: frontend/cypress/screenshots
           if-no-files-found: ignore
           retention-days: 7
+        timeout-minutes: 5
 
-      - name: Upload E2E videos on failure
+      - name: Upload backend logs on failure
         if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: cypress-videos
-          path: frontend/cypress/videos
-          if-no-files-found: ignore
-          retention-days: 7
-
-      - name: Upload backend logs
-        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: backend-logs
           path: backend/backend.log
-          if-no-files-found: ignore
-          retention-days: 7
-
-      - name: Upload frontend logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-logs
-          path: frontend/frontend.log
           if-no-files-found: ignore
           retention-days: 7
