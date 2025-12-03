@@ -33,7 +33,7 @@ describe ('Login E2E Tests', () => {
         cy.get('[data-testid="password-input"]').type('123');
         cy.get('[data-testid="login-button"]').click();
 
-        cy.get('[data-testid="password-error"]').should('be.visible').and('contain', 'at least 6');
+        cy.get('[data-testid="password-error"]').should('be.visible').and('contain', 'ít nhất 6');
         cy.get('[data-testid="login-message"]').should('contain', 'thất bại');
     });
 
