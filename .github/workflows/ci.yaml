@@ -11,25 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
-    services:
-      mysql:
-        image: mysql:8
-        env:
-          MYSQL_DATABASE: flogin_db
-          MYSQL_ROOT_PASSWORD: 123456
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping -h localhost -p123456"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
-    env:
-      SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/flogin_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: 123456
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
