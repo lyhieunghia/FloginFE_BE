@@ -14,9 +14,15 @@ const validateUsername = (username) => {
     const usernameStr = String(username);
     if (usernameStr.trim() === "") return "Username không được để trống";
     if (usernameStr.length < 3) return "Username phải có ít nhất 3 ký tự";
-    if (usernameStr.length > 16) return "Username không được vượt quá 16 ký tự";
+    if (usernameStr.length > 20) return "Username không được vượt quá 20 ký tự";
     if (/\s/.test(usernameStr)) return "Username không được chứa khoảng trắng";
-    if (!/^[a-zA-Z0-9_]+$/.test(usernameStr)) return "Username không được chứa kí tự đặc biệt";
+    
+    // Check if starts with letter or number
+    if (!/^[a-zA-Z0-9]/.test(usernameStr)) return "Username phải bắt đầu bằng chữ cái hoặc số";
+    
+    // Check if contains only valid characters (letters, numbers, underscore, hyphen)
+    if (!/^[a-zA-Z0-9_-]+$/.test(usernameStr)) return "Username chỉ được chứa chữ cái, số, dấu gạch dưới và gạch ngang";
+    
     return '';
 };
 
