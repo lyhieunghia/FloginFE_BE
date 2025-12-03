@@ -138,76 +138,70 @@ jobs:
           ls -lh target/*.jar
           echo "JAR file found"
 
-      - name: Build frontend
-        working-directory: frontend
-        run: npm run build
-
       - name: Wait for MySQL
         working-directory: frontend
         run: npx wait-on tcp:127.0.0.1:3306 --timeout 180000 --interval 1000
 
-      - name: Start backend
+      - name: Start backend (with robust readiness check)
         working-directory: backend
         run: |
           echo "Starting backend..."
           nohup java -jar target/*.jar > backend.log 2>&1 &
           echo $! > backend.pid
           echo "Backend started with PID $(cat backend.pid)"
-          sleep 5
-          echo "Initial backend log:"
-          tail -20 backend.log
-
-      - name: Start frontend
-        working-directory: frontend
-        run: |
-          nohup npm start > frontend.log 2>&1 &
-          echo $! > frontend.pid
-          echo "Frontend started with PID $(cat frontend.pid)"
-
-      - name: Wait for backend health check
-        working-directory: frontend
-        run: |
-          echo "Waiting for backend at http://localhost:8080/api/test/health"
-          echo "Timeout: 180 seconds, checking every 3 seconds"
-          npx wait-on --timeout 180000 --interval 3000 --httpTimeout 10000 --verbose http://localhost:8080/api/test/health || {
-            echo "========================================"
-            echo "Backend health check FAILED after 3 minutes"
-            echo "========================================"
-            echo "Backend process status:"
-            if [ -f ../backend/backend.pid ]; then
-              PID=$(cat ../backend/backend.pid)
-              ps -p $PID || echo "Backend process $PID is not running"
+          
+          echo "Waiting for backend to be fully ready (up to 120s)..."
+          for i in $(seq 1 60); do
+            # Check if "Started" appears in log (Spring Boot ready message)
+            if grep -q "Started" backend.log ; then
+              echo "✅ Backend application reported STARTED"
+              break
             fi
-            echo "\nLast 200 lines of backend log:"
-            tail -200 ../backend/backend.log
-            echo "\n========================================"
-            exit 1
-          }
-          echo "✅ Backend is ready!"
+            # Check if process is still running
+            if ! ps -p $(cat backend.pid) > /dev/null 2>&1; then
+              echo "❌ Backend process died unexpectedly"
+              tail -100 backend.log
+              exit 1
+            fi
+            sleep 2
+          done
+          
+          echo "Backend process status: $(ps -p $(cat backend.pid) -o pid,cmd --no-headers || echo 'not running')"
+          echo "Last 50 lines of backend.log:"
+          tail -50 backend.log
 
-      - name: Verify backend with curl
+      - name: Build frontend (with backend API URL)
+        working-directory: frontend
         run: |
-          echo "Verifying backend health endpoint..."
-          RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}" http://localhost:8080/api/test/health)
-          echo "$RESPONSE"
-          HTTP_CODE=$(echo "$RESPONSE" | grep "HTTP_CODE" | cut -d':' -f2)
-          if [ "$HTTP_CODE" != "200" ]; then
-            echo "❌ Backend health check failed with HTTP code: $HTTP_CODE"
+          echo "Building frontend with backend URL for E2E testing..."
+          REACT_APP_API_URL=http://localhost:8080 npm run build
+          echo "Frontend build complete"
+
+      - name: Start frontend (serve static build)
+        working-directory: frontend
+        run: |
+          echo "Serving frontend build at port 3000..."
+          npx serve -s build -l 3000 > frontend.log 2>&1 &
+          echo $! > frontend.pid
+          echo "Frontend server started with PID $(cat frontend.pid)"
+          
+          echo "Waiting for frontend to be ready..."
+          npx wait-on --timeout 60000 --interval 1000 http://localhost:3000
+          echo "✅ Frontend is ready!"
+
+      - name: Verify backend health endpoint
+        run: |
+          echo "Double-checking backend health endpoint..."
+          curl -f http://localhost:8080/api/test/health || {
+            echo "❌ Backend health check failed"
             cat backend/backend.log
             exit 1
-          fi
-          echo "✅ Backend health check passed"
-
-      - name: Wait for frontend
-        working-directory: frontend
-        run: |
-          echo "Waiting for frontend at http://localhost:3000"
-          npx wait-on --timeout 60000 --interval 1000 http://localhost:3000
-          echo "Frontend is ready!"
+          }
+          echo "✅ Backend health endpoint verified"
 
       - name: Run E2E tests with Cypress      
         working-directory: frontend
-        run: npm run test:e2e
+        run: npm run test:e2e -- --config baseUrl=http://localhost:3000
         env:
           SPRING_DATASOURCE_URL: ${{ env.SPRING_DATASOURCE_URL }}
           SPRING_DATASOURCE_USERNAME: ${{ env.SPRING_DATASOURCE_USERNAME }}
