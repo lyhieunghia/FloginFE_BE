@@ -24,6 +24,13 @@ describe("App Component Integration Tests (Mock)", () => {
     
     // Reset all mocks
     jest.clearAllMocks();
+    
+    // Ensure all productService methods are mocked as jest functions
+    productService.getAllProducts = jest.fn();
+    productService.createProduct = jest.fn();
+    productService.updateProduct = jest.fn();
+    productService.deleteProduct = jest.fn();
+    productService.getProductById = jest.fn();
   });
 
   afterEach(() => {

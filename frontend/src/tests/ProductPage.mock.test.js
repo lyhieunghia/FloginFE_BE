@@ -29,7 +29,13 @@ describe("ProductPage Mock Tests (Req 5.2.1)", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Giả lập window.confirm luôn trả về true (Đồng ý xóa)
-    window.confirm = jest.fn(() => true); 
+    window.confirm = jest.fn(() => true);
+    
+    // Ensure all productService methods are properly mocked
+    getAllProducts.mockClear();
+    createProduct.mockClear();
+    updateProduct.mockClear();
+    deleteProduct.mockClear();
   });
 
   test("Happy Path: Nên tải danh sách và thêm sản phẩm mới (Mocked)", async () => {
