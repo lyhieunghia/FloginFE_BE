@@ -43,6 +43,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/login").permitAll()
                         .requestMatchers("/api/products/**").permitAll()
+                        .requestMatchers("/api/test/health").permitAll()
                         .anyRequest().authenticated());
         return http.build();
     }
