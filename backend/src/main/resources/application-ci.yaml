@@ -10,17 +10,17 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: none  # Don't auto-create schema, use schema.sql instead
-    show-sql: false  # Reduce log noise in CI
+      ddl-auto: create-drop  # Let Hibernate create schema in CI
+    show-sql: false
     properties:
       hibernate:
         format_sql: false
         dialect: org.hibernate.dialect.MySQL8Dialect
+    defer-datasource-initialization: true  # Allow data.sql to run after Hibernate creates schema
   
   sql:
     init:
-      mode: always
-      continue-on-error: false
+      mode: always  # Run data.sql to insert test data after schema creation
 
 logging:
   level:

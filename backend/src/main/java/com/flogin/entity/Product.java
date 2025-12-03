@@ -1,10 +1,6 @@
 package com.flogin.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,8 +15,19 @@ public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    
+    @Column(name = "product_name", nullable = false)
     private String name;
+    
+    @Column(nullable = false)
     private double price;
+    
+    @Column(nullable = false)
     private int quantity;
+    
+    @Column(columnDefinition = "TEXT")
+    private String description;
+    
+    @Column(length = 100)
     private String category;
 }
