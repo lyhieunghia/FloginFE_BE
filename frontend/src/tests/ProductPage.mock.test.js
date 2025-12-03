@@ -181,7 +181,7 @@ describe("ProductPage Mock Tests (Req 5.2.1)", () => {
     
     // Chờ thông báo lỗi
     expect(await screen.findByTestId("success-message")).toHaveTextContent(
-      "Lỗi khi tải danh sách sản phẩm"
+      /Lỗi khi tải danh sách sản phẩm/
     );
     
     expect(getAllProducts).toHaveBeenCalledTimes(1);
@@ -214,7 +214,7 @@ describe("ProductPage Mock Tests (Req 5.2.1)", () => {
 
     // Chờ thông báo lỗi
     expect(await screen.findByTestId("success-message")).toHaveTextContent(
-      "Lỗi khi thêm sản phẩm"
+      /Lỗi khi thêm sản phẩm/
     );
     
     expect(createProduct).toHaveBeenCalledTimes(1);
@@ -242,9 +242,9 @@ describe("ProductPage Mock Tests (Req 5.2.1)", () => {
     fireEvent.change(screen.getByTestId("product-name"), { target: { value: "Sản phẩm lỗi mới" } });
     fireEvent.click(screen.getByText("Cập nhật"));
 
-    // SỬA LỖI 2: Thêm await waitFor để đảm bảo chờ state update từ promise rejection
+    // Sửa LỖI 2: Thêm await waitFor để đảm bảo chờ state update từ promise rejection
     await waitFor(() => {
-        expect(screen.getByTestId("success-message")).toHaveTextContent("Lỗi khi cập nhật sản phẩm");
+        expect(screen.getByTestId("success-message")).toHaveTextContent(/Lỗi khi cập nhật sản phẩm/);
     });
     expect(updateProduct).toHaveBeenCalledTimes(1);
   });

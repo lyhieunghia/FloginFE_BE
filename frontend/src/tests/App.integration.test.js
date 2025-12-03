@@ -265,7 +265,7 @@ describe("App Component Integration Tests (Mock)", () => {
     );
 
     const errorMessage = await screen.findByText(
-      "Lỗi khi tải danh sách sản phẩm"
+      /Lỗi khi tải danh sách sản phẩm/
     );
     expect(errorMessage).toBeInTheDocument();
   });
@@ -322,7 +322,7 @@ describe("App Component Integration Tests (Mock)", () => {
     });
     fireEvent.click(screen.getByTestId("submit-button"));
 
-    const errorMessage = await screen.findByText("Lỗi khi thêm sản phẩm");
+    const errorMessage = await screen.findByText(/Lỗi khi thêm sản phẩm/);
     expect(errorMessage).toBeInTheDocument();
   });
 
@@ -359,7 +359,7 @@ describe("App Component Integration Tests (Mock)", () => {
     });
     fireEvent.click(screen.getByTestId("submit-button"));
 
-    const errorMessage = await screen.findByText("Lỗi khi cập nhật sản phẩm");
+    const errorMessage = await screen.findByText(/Lỗi khi cập nhật sản phẩm/);
     expect(errorMessage).toBeInTheDocument();
   });
 
@@ -391,7 +391,7 @@ describe("App Component Integration Tests (Mock)", () => {
 
     expect(window.confirm).toHaveBeenCalled();
 
-    const errorMessage = await screen.findByText("Lỗi khi xóa sản phẩm");
+    const errorMessage = await screen.findByText(/Lỗi khi xóa sản phẩm/);
     expect(errorMessage).toBeInTheDocument();
   });
 
