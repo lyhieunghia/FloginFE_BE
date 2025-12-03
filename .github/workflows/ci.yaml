@@ -135,17 +135,25 @@ jobs:
         working-directory: frontend
         run: npm run build
 
+      - name: Wait for MySQL
+        working-directory: frontend
+        run: npx wait-on tcp:127.0.0.1:3306 --timeout 180000 --interval 1000
+
       - name: Start backend
         working-directory: backend
-        run: ./mvnw spring-boot:run &
+        run: |
+          nohup ./mvnw spring-boot:run > backend.log 2>&1 &
+          echo "Backend started in background"
 
       - name: Start frontend
         working-directory: frontend
-        run: npm start &
+        run: |
+          nohup npm start > frontend.log 2>&1 &
+          echo "Frontend started in background"
 
       - name: Wait for backend 
         working-directory: frontend
-        run: npx wait-on --timeout 120000 --interval 1000 http://localhost:8080/api/test/health
+        run: npx wait-on --timeout 300000 --interval 1000 http://localhost:8080/api/test/health
 
       - name: Wait for frontend
         working-directory: frontend
@@ -168,3 +176,12 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
         timeout-minutes: 5
+
+      - name: Upload backend logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-logs
+          path: backend/backend.log
+          if-no-files-found: ignore
+          retention-days: 7
