@@ -27,7 +27,7 @@ export const ProductPage = () => {
           ? `Lỗi ${error.response.status} - ${error.response.data?.message || ''}`
           : 'Network Error';
         setMessage(`Lỗi khi tải danh sách sản phẩm: ${errMsg}`);
-        console.error(error);
+        console.error('fetchProducts error:', error.response ? error.response.data : error.message || error);
         setProducts([]); 
       });
   };
@@ -52,7 +52,7 @@ export const ProductPage = () => {
             ? `Lỗi ${error.response.status} - ${error.response.data?.message || ''}`
             : 'Network Error';
           setMessage(`Lỗi khi cập nhật sản phẩm: ${errMsg}`);
-          console.error(error);
+          console.error('updateProduct error:', error.response ? error.response.data : error.message || error);
         });
 
     } else {
@@ -68,7 +68,7 @@ export const ProductPage = () => {
             ? `Lỗi ${error.response.status} - ${error.response.data?.message || ''}`
             : 'Network Error';
           setMessage(`Lỗi khi thêm sản phẩm: ${errMsg}`);
-          console.error(error);
+          console.error('createProduct error:', error.response ? error.response.data : error.message || error);
         });
     }
   };
@@ -99,7 +99,7 @@ export const ProductPage = () => {
             ? `Lỗi ${error.response.status} - ${error.response.data?.message || ''}`
             : 'Network Error';
           setMessage(`Lỗi khi xóa sản phẩm: ${errMsg}`);
-          console.error(error);
+          console.error('deleteProduct error:', error.response ? error.response.data : error.message || error);
         });
     }
   };
