@@ -1,33 +1,13 @@
--- MySQL Schema for kiem_thu_phan_mem database
--- This script will be used for production MySQL setup
+-- Test data for H2 in-memory database
+-- Tables are created by Hibernate (ddl-auto=create-drop)
+-- This file only contains INSERT statements
 
-CREATE DATABASE IF NOT EXISTS kiem_thu_phan_mem;
-
-USE kiem_thu_phan_mem;
-
-DROP TABLE IF EXISTS users;
-
-CREATE TABLE users (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(100) NOT NULL UNIQUE,
-    password VARCHAR(100) NOT NULL
-);
-
-DROP TABLE IF EXISTS products;
-
-CREATE TABLE products (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    product_name VARCHAR(255) NOT NULL,
-    price DECIMAL(10, 2) NOT NULL,
-    quantity INT NOT NULL DEFAULT 0,
-    description TEXT,
-    category VARCHAR(100)
-);
-
+-- Test users (plain text passwords for testing)
 INSERT INTO users (username, password)
 VALUES
     ('admin', 'admin123'),
     ('user1', 'user1pass'),
+    ('testuser', 'Test123');
     ('nhanvienA', 'nhanvienA'),
     ('testuser', 'Test123');
 
