@@ -30,4 +30,14 @@ public class Product {
     
     @Column(length = 100)
     private String category;
+    
+    // Custom constructor for tests (5 arguments)
+    public Product(Long id, String name, double price, int quantity, String description) {
+        this.id = id;
+        this.name = name;
+        this.price = price;
+        this.quantity = quantity;
+        this.description = description;
+        this.category = null;
+    }
 }
