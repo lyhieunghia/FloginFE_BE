@@ -62,7 +62,7 @@ jobs:
 
       - name: Run backend unit tests
         working-directory: backend
-        run: ./mvnw -B test
+        run: ./mvnw -B test -Dspring.profiles.active=test
 
       - name: Run frontend unit tests with coverage
         working-directory: frontend
