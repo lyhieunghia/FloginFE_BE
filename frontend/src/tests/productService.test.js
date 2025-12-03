@@ -15,6 +15,7 @@ describe("Product Service Unit Tests", () => {
     // Xóa lịch sử mock trước mỗi test
     mockedAxios.get.mockClear();
     mockedAxios.post.mockClear();
+    mockedAxios.put.mockClear();
     mockedAxios.delete.mockClear();
   });
 

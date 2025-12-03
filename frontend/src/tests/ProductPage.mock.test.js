@@ -166,9 +166,12 @@ describe("ProductPage Mock Tests (Req 5.2.1)", () => {
   // --- SAD PATHS CŨ (Giữ nguyên) ---
 
   test("Sad Path: Nên hiển thị lỗi khi tải danh sách thất bại (Mocked)", async () => {
-    getAllProducts.mockRejectedValueOnce(
-      new Error("Network Error 500")
-    );
+    const networkError = new Error("Network Error 500");
+    networkError.response = {
+      status: 500,
+      data: { message: 'Internal Server Error' }
+    };
+    getAllProducts.mockRejectedValueOnce(networkError);
     
     render(
       <MemoryRouter>
@@ -195,9 +198,12 @@ describe("ProductPage Mock Tests (Req 5.2.1)", () => {
       </MemoryRouter>
     );
     
-    createProduct.mockRejectedValueOnce(
-      new Error("Lỗi 400 Bad Request")
-    );
+    const badRequestError = new Error("Lỗi 400 Bad Request");
+    badRequestError.response = {
+      status: 400,
+      data: { message: 'Invalid product data' }
+    };
+    createProduct.mockRejectedValueOnce(badRequestError);
     
     // Điền form và submit
     fireEvent.change(screen.getByTestId("product-name"), { target: { value: "Sản phẩm Lỗi" } });
@@ -219,8 +225,13 @@ describe("ProductPage Mock Tests (Req 5.2.1)", () => {
     // SỬA LỖI 1: Bổ sung 'category' cho sản phẩm mock để qua validation
     getAllProducts.mockResolvedValueOnce({ data: { content: [{ id: 10, name: 'Sản phẩm lỗi', price: 1, quantity: 1, category: 'Temp' }] } });
     
-    // Mock Update thất bại
-    updateProduct.mockRejectedValueOnce(new Error("Update Failed"));
+    // Mock Update thất bại with proper error.response structure
+    const updateError = new Error("Update Failed");
+    updateError.response = {
+      status: 500,
+      data: { message: 'Update operation failed' }
+    };
+    updateProduct.mockRejectedValueOnce(updateError);
     
     render(<MemoryRouter><ProductPage /></MemoryRouter>);
     
