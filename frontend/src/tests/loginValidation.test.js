@@ -121,4 +121,4 @@ describe("Login Validation Tests", () => {
         const errors = validateLoginForm(username, password);
         expect(errors.passwordError).toBe("Password phải chứa ít nhất 1 chữ số");
     });
-});
+})});
