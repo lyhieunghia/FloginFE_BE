@@ -7,11 +7,5 @@ import '@testing-library/jest-dom';
 // Mock window.scrollTo for jsdom compatibility
 window.scrollTo = jest.fn();
 
-// Mock axios for tests
-jest.mock('axios', () => ({
-    default: {
-        defaults: {
-            adapter: 'http'
-        }
-    }
-}));
+// Note: axios mocking is handled by src/__mocks__/axios.js
+// Jest will automatically use that mock when jest.mock('axios') is called in test files

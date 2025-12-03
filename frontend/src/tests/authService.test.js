@@ -19,8 +19,13 @@ describe('authService', () => {
     localStorage.clear();
     jest.spyOn(console, 'error').mockImplementation(() => {});
     
-    // Ensure axios methods are reset to default mock implementations
-    axios.post.mockClear();
+    // Ensure all axios methods are properly mocked and cleared
+    if (axios.post && axios.post.mockClear) {
+      axios.post.mockClear();
+    }
+    if (axios.get && axios.get.mockClear) {
+      axios.get.mockClear();
+    }
   });
 
   afterEach(() => {
