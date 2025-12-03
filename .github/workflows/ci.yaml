@@ -149,9 +149,13 @@ jobs:
       - name: Start backend
         working-directory: backend
         run: |
+          echo "Starting backend..."
           nohup java -jar target/*.jar > backend.log 2>&1 &
           echo $! > backend.pid
           echo "Backend started with PID $(cat backend.pid)"
+          sleep 5
+          echo "Initial backend log:"
+          tail -20 backend.log
 
       - name: Start frontend
         working-directory: frontend
@@ -163,21 +167,36 @@ jobs:
       - name: Wait for backend health check
         working-directory: frontend
         run: |
-          echo "Waiting for backend at http://localhost:8081/api/test/health"
-          npx wait-on --timeout 120000 --interval 2000 --httpTimeout 5000 http://localhost:8081/api/test/health || {
-            echo "Backend health check failed. Checking backend logs..."
-            tail -100 ../backend/backend.log
+          echo "Waiting for backend at http://localhost:8080/api/test/health"
+          echo "Timeout: 180 seconds, checking every 3 seconds"
+          npx wait-on --timeout 180000 --interval 3000 --httpTimeout 10000 --verbose http://localhost:8080/api/test/health || {
+            echo "========================================"
+            echo "Backend health check FAILED after 3 minutes"
+            echo "========================================"
+            echo "Backend process status:"
+            if [ -f ../backend/backend.pid ]; then
+              PID=$(cat ../backend/backend.pid)
+              ps -p $PID || echo "Backend process $PID is not running"
+            fi
+            echo "\nLast 200 lines of backend log:"
+            tail -200 ../backend/backend.log
+            echo "\n========================================"
             exit 1
           }
-          echo "Backend is ready!"
+          echo "✅ Backend is ready!"
 
       - name: Verify backend with curl
         run: |
-          curl -f http://localhost:8081/api/test/health || {
-            echo "Backend health endpoint not responding"
+          echo "Verifying backend health endpoint..."
+          RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}" http://localhost:8080/api/test/health)
+          echo "$RESPONSE"
+          HTTP_CODE=$(echo "$RESPONSE" | grep "HTTP_CODE" | cut -d':' -f2)
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "❌ Backend health check failed with HTTP code: $HTTP_CODE"
             cat backend/backend.log
             exit 1
-          }
+          fi
+          echo "✅ Backend health check passed"
 
       - name: Wait for frontend
         working-directory: frontend
