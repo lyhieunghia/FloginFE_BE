@@ -1,3 +1,6 @@
+// Mock productService
+jest.mock("../services/productService");
+
 import React from "react";
 import {
   render,
@@ -11,9 +14,6 @@ import { MemoryRouter } from "react-router-dom";
 import "@testing-library/jest-dom";
 import App from "../App";
 import * as productService from "../services/productService";
-
-// Mock productService
-jest.mock("../services/productService");
 
 describe("App Component Integration Tests (Mock)", () => {
   beforeEach(() => {

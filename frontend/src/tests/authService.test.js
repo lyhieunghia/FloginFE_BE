@@ -1,3 +1,5 @@
+jest.mock('axios');
+
 import axios from 'axios';
 import {
   login,
@@ -7,8 +9,6 @@ import {
   removeAuthToken,
   isAuthenticated,
 } from '../services/authService';
-
-jest.mock('axios');
 
 describe('authService', () => {
   const API_BASE = 'http://localhost:8080';

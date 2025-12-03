@@ -1,4 +1,7 @@
 // File: src/tests/ProductPage.mock.test.js
+// 1. Mock toàn bộ module 'productService'
+jest.mock("../services/productService");
+
 import React from "react";
 import {
   render,
@@ -20,9 +23,6 @@ import {
   updateProduct,
   deleteProduct,
 } from "../services/productService"; // Cần import updateProduct
-
-// 1. Mock toàn bộ module 'productService'
-jest.mock("../services/productService");
 
 describe("ProductPage Mock Tests (Req 5.2.1)", () => {
 

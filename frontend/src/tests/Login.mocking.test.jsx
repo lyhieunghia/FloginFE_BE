@@ -1,11 +1,11 @@
+// Mock the entire authService module
+jest.mock('../services/authService');
+
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import LoginPage from '../pages/LoginPage';
 import * as authService from '../services/authService';
-
-// Mock the entire authService module
-jest.mock('../services/authService');
 
 // Wrapper for Router context
 const LoginWithRouter = ({ mockApi, onSuccess }) => (

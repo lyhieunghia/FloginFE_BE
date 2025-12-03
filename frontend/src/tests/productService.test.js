@@ -1,3 +1,6 @@
+// Mock toàn bộ module axios
+jest.mock("axios");
+
 import axios from "axios";
 import {
   getProductById,
@@ -6,8 +9,6 @@ import {
   getAllProducts,
 } from "../services/productService";
 import { updateProduct } from "../services/productService";
-// Mock toàn bộ module axios
-jest.mock("axios");
 const mockedAxios = axios;
 
 describe("Product Service Unit Tests", () => {
