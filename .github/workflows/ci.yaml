@@ -163,8 +163,8 @@ jobs:
       - name: Wait for backend health check
         working-directory: frontend
         run: |
-          echo "Waiting for backend at http://localhost:8080/api/test/health"
-          npx wait-on --timeout 120000 --interval 2000 --httpTimeout 5000 http://localhost:8080/api/test/health || {
+          echo "Waiting for backend at http://localhost:8081/api/test/health"
+          npx wait-on --timeout 120000 --interval 2000 --httpTimeout 5000 http://localhost:8081/api/test/health || {
             echo "Backend health check failed. Checking backend logs..."
             tail -100 ../backend/backend.log
             exit 1
@@ -173,7 +173,7 @@ jobs:
 
       - name: Verify backend with curl
         run: |
-          curl -f http://localhost:8080/api/test/health || {
+          curl -f http://localhost:8081/api/test/health || {
             echo "Backend health endpoint not responding"
             cat backend/backend.log
             exit 1
