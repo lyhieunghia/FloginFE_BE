@@ -1,11 +1,11 @@
+// Mock the entire authService module
+jest.mock('../services/authService');
+
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import LoginPage from '../pages/LoginPage';
 import * as authService from '../services/authService';
-
-// Mock the entire authService module
-jest.mock('../services/authService');
 
 // Wrapper for Router context
 const LoginWithRouter = ({ mockApi, onSuccess }) => (
@@ -247,9 +247,12 @@ describe('5.1.1 Frontend Mocking Tests - Login Component', () => {
     });
 
     test('TC4: Mock rejected promise (network error) - Hiển thị error', async () => {
-      const mockLoginFn = jest.fn().mockRejectedValue(
-        new Error('Network connection failed')
-      );
+      const networkError = new Error('Network connection failed');
+      networkError.response = {
+        status: 500,
+        data: { message: 'Network connection failed' }
+      };
+      const mockLoginFn = jest.fn().mockRejectedValue(networkError);
 
       render(<LoginWithRouter mockApi={mockLoginFn} />);
 

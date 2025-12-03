@@ -1,3 +1,6 @@
+// Mock toàn bộ module axios
+jest.mock("axios");
+
 import axios from "axios";
 import {
   getProductById,
@@ -6,16 +9,24 @@ import {
   getAllProducts,
 } from "../services/productService";
 import { updateProduct } from "../services/productService";
-// Mock toàn bộ module axios
-jest.mock("axios");
 const mockedAxios = axios;
 
 describe("Product Service Unit Tests", () => {
   beforeEach(() => {
-    // Xóa lịch sử mock trước mỗi test
-    mockedAxios.get.mockClear();
-    mockedAxios.post.mockClear();
-    mockedAxios.delete.mockClear();
+    // Xóa lịch sử mock trước mỗi test - ensure methods exist before clearing
+    jest.clearAllMocks();
+    if (mockedAxios.get && mockedAxios.get.mockClear) {
+      mockedAxios.get.mockClear();
+    }
+    if (mockedAxios.post && mockedAxios.post.mockClear) {
+      mockedAxios.post.mockClear();
+    }
+    if (mockedAxios.put && mockedAxios.put.mockClear) {
+      mockedAxios.put.mockClear();
+    }
+    if (mockedAxios.delete && mockedAxios.delete.mockClear) {
+      mockedAxios.delete.mockClear();
+    }
   });
 
   // Test hàm getAllProducts (cover các hàm khác)

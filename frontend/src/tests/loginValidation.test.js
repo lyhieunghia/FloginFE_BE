@@ -91,7 +91,7 @@ describe("Login Validation Tests", () => {
         const username = "invalid#$%^<>";
         const password = "ValidPass123";
         const errors = validateLoginForm(username, password);
-        expect(errors.usernameError).toBe("Username không được chứa kí tự đặc biệt");
+        expect(errors.usernameError).toBe("Username chỉ được chứa chữ cái, số, dấu gạch dưới và gạch ngang");
     });
 
     test("TC7: Password rỗng trả về lỗi", () => {

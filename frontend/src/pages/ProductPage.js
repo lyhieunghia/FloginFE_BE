@@ -23,8 +23,11 @@ export const ProductPage = () => {
         setProducts(productList);
       })
       .catch(error => {
-        setMessage('Lỗi khi tải danh sách sản phẩm');
-        console.error(error);
+        let errMsg = error.response
+          ? `Lỗi ${error.response.status} - ${error.response.data?.message || ''}`
+          : 'Network Error';
+        setMessage(`Lỗi khi tải danh sách sản phẩm: ${errMsg}`);
+        console.error('fetchProducts error:', error.response ? error.response.data : error.message || error);
         setProducts([]); 
       });
   };
@@ -45,8 +48,11 @@ export const ProductPage = () => {
           setEditingProduct(null); // Rất quan trọng: Reset form về chế độ Thêm mới
         })
         .catch(error => {
-          setMessage('Lỗi khi cập nhật sản phẩm');
-          console.error(error);
+          let errMsg = error.response
+            ? `Lỗi ${error.response.status} - ${error.response.data?.message || ''}`
+            : 'Network Error';
+          setMessage(`Lỗi khi cập nhật sản phẩm: ${errMsg}`);
+          console.error('updateProduct error:', error.response ? error.response.data : error.message || error);
         });
 
     } else {
@@ -58,8 +64,11 @@ export const ProductPage = () => {
           setEditingProduct(null); // Rất quan trọng: Reset form sau khi thêm mới
         })
         .catch(error => {
-          setMessage('Lỗi khi thêm sản phẩm');
-          console.error(error);
+          let errMsg = error.response
+            ? `Lỗi ${error.response.status} - ${error.response.data?.message || ''}`
+            : 'Network Error';
+          setMessage(`Lỗi khi thêm sản phẩm: ${errMsg}`);
+          console.error('createProduct error:', error.response ? error.response.data : error.message || error);
         });
     }
   };
@@ -86,8 +95,11 @@ export const ProductPage = () => {
           }
         })
         .catch(error => {
-          setMessage('Lỗi khi xóa sản phẩm');
-          console.error(error);
+          let errMsg = error.response
+            ? `Lỗi ${error.response.status} - ${error.response.data?.message || ''}`
+            : 'Network Error';
+          setMessage(`Lỗi khi xóa sản phẩm: ${errMsg}`);
+          console.error('deleteProduct error:', error.response ? error.response.data : error.message || error);
         });
     }
   };

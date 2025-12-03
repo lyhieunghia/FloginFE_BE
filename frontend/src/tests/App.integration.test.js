@@ -1,3 +1,6 @@
+// Mock productService
+jest.mock("../services/productService");
+
 import React from "react";
 import {
   render,
@@ -12,9 +15,6 @@ import "@testing-library/jest-dom";
 import App from "../App";
 import * as productService from "../services/productService";
 
-// Mock productService
-jest.mock("../services/productService");
-
 describe("App Component Integration Tests (Mock)", () => {
   beforeEach(() => {
     // Mock window functions
@@ -24,6 +24,13 @@ describe("App Component Integration Tests (Mock)", () => {
     
     // Reset all mocks
     jest.clearAllMocks();
+    
+    // Ensure all productService methods are mocked as jest functions
+    productService.getAllProducts = jest.fn();
+    productService.createProduct = jest.fn();
+    productService.updateProduct = jest.fn();
+    productService.deleteProduct = jest.fn();
+    productService.getProductById = jest.fn();
   });
 
   afterEach(() => {
@@ -265,7 +272,7 @@ describe("App Component Integration Tests (Mock)", () => {
     );
 
     const errorMessage = await screen.findByText(
-      "Lỗi khi tải danh sách sản phẩm"
+      /Lỗi khi tải danh sách sản phẩm/
     );
     expect(errorMessage).toBeInTheDocument();
   });
@@ -322,7 +329,7 @@ describe("App Component Integration Tests (Mock)", () => {
     });
     fireEvent.click(screen.getByTestId("submit-button"));
 
-    const errorMessage = await screen.findByText("Lỗi khi thêm sản phẩm");
+    const errorMessage = await screen.findByText(/Lỗi khi thêm sản phẩm/);
     expect(errorMessage).toBeInTheDocument();
   });
 
@@ -359,7 +366,7 @@ describe("App Component Integration Tests (Mock)", () => {
     });
     fireEvent.click(screen.getByTestId("submit-button"));
 
-    const errorMessage = await screen.findByText("Lỗi khi cập nhật sản phẩm");
+    const errorMessage = await screen.findByText(/Lỗi khi cập nhật sản phẩm/);
     expect(errorMessage).toBeInTheDocument();
   });
 
@@ -391,7 +398,7 @@ describe("App Component Integration Tests (Mock)", () => {
 
     expect(window.confirm).toHaveBeenCalled();
 
-    const errorMessage = await screen.findByText("Lỗi khi xóa sản phẩm");
+    const errorMessage = await screen.findByText(/Lỗi khi xóa sản phẩm/);
     expect(errorMessage).toBeInTheDocument();
   });
 
