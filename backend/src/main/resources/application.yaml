@@ -3,20 +3,28 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/flogin_db?useSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://localhost:3306/kiem_thu_phan_mem?useSSL=false&serverTimezone=UTC
     username: root
-    password: 123456
+    password: subin123
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create-drop
     show-sql: true
     properties:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.MySQL8Dialect
+  
+  sql:
+    init:
+      mode: always  # Use 'always' if you want to run schema-mysql.sql on startup
 
 logging:
   level:
     org.springframework: INFO
     com.flogin: DEBUG
+
+jwt:
+  secret: "your-super-secret-key-that-is-long-enough-to-be-secure"
+  expiration: 86400000 # 24 hours in milliseconds

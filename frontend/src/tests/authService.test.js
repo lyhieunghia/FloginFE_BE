@@ -1,3 +1,5 @@
+jest.mock('axios');
+
 import axios from 'axios';
 import {
   login,
@@ -8,8 +10,6 @@ import {
   isAuthenticated,
 } from '../services/authService';
 
-jest.mock('axios');
-
 describe('authService', () => {
   const API_BASE = 'http://localhost:8080';
   const endpoint = `${API_BASE}/api/auth/login`;
@@ -18,6 +18,14 @@ describe('authService', () => {
     jest.clearAllMocks();
     localStorage.clear();
     jest.spyOn(console, 'error').mockImplementation(() => {});
+    
+    // Ensure all axios methods are properly mocked and cleared
+    if (axios.post && axios.post.mockClear) {
+      axios.post.mockClear();
+    }
+    if (axios.get && axios.get.mockClear) {
+      axios.get.mockClear();
+    }
   });
 
   afterEach(() => {

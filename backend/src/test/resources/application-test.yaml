@@ -1,0 +1,45 @@
+server:
+  port: 8081
+
+spring:
+  devtools:
+    restart:
+      enabled: false
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  
+  h2:
+    console:
+      enabled: true
+  
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
+    defer-datasource-initialization: true  # Allow test-data.sql to run after Hibernate creates schema
+  
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:test-data.sql
+  
+  security:
+    user:
+      name: testuser
+      password: testpass
+
+logging:
+  level:
+    org.springframework: INFO
+    com.flogin: DEBUG
+    org.hibernate.SQL: DEBUG
+jwt:
+  expiration: 86400000 # 24 hours in milliseconds
+

@@ -1,0 +1,33 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://127.0.0.1:3306/flogin_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:123456}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop  # Let Hibernate create schema in CI
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        dialect: org.hibernate.dialect.MySQL8Dialect
+    defer-datasource-initialization: true  # Allow data.sql to run after Hibernate creates schema
+  
+  sql:
+    init:
+      mode: always  # Run data.sql to insert test data after schema creation
+
+logging:
+  level:
+    org.springframework: INFO
+    com.flogin: INFO
+    org.hibernate.SQL: WARN
+
+jwt:
+  secret: "ci-test-secret-key-that-is-long-enough-to-be-secure-for-testing"
+  expiration: 86400000

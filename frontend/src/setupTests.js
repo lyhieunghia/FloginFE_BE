@@ -4,6 +4,8 @@
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
 
-// Thêm 2 dòng này để sửa lỗi CORS của JSDOM
-import axios from 'axios';
-axios.defaults.adapter = 'http';
+// Mock window.scrollTo for jsdom compatibility
+window.scrollTo = jest.fn();
+
+// Note: axios mocking is handled by src/__mocks__/axios.js
+// Jest will automatically use that mock when jest.mock('axios') is called in test files

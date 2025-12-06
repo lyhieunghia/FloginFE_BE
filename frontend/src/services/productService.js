@@ -1,7 +1,9 @@
 import axios from 'axios';
 
-// URL Spring Boot backend của bạn 
-const API_URL = 'http://localhost:8080/api/products';
+// URL Spring Boot backend - support environment variable for CI/CD
+const API_URL = process.env.REACT_APP_API_URL 
+  ? `${process.env.REACT_APP_API_URL}/api/products`
+  : 'http://localhost:8080/api/products';
 
 /**
  * Lấy danh sách tất cả sản phẩm

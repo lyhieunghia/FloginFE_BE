@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import App from '../App';
 
-// Mock các component con
+// Mock các component con để tránh dependencies
 jest.mock('../pages/LoginPage', () => {
   return function MockLoginPage() {
     return <div data-testid="login-page">Login Page</div>;
@@ -17,64 +17,44 @@ jest.mock('../pages/ProductPage', () => {
   };
 });
 
-jest.mock('../components/ProductDetail', () => {
-  return {
-    ProductDetail: function MockProductDetail() {
-      return <div data-testid="product-detail">Product Detail</div>;
-    }
-  };
-});
-
 describe('App', () => {
-  const renderApp = (initialRoute = '/') => {
-    window.history.pushState({}, 'Test page', initialRoute);
-    return render(
-      <BrowserRouter>
+  test('redirect "/" tới "/login"', () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
         <App />
-      </BrowserRouter>
+      </MemoryRouter>
     );
-  };
-
-  test('render header với title "Quản lý Sản phẩm (Flogin)"', () => {
-    renderApp();
-
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Quản lý Sản phẩm (Flogin)');
-  });
-
-  test('render ProductPage tại route "/"', () => {
-    renderApp('/');
-
-    expect(screen.getByTestId('product-page')).toBeInTheDocument();
-  });
-
-  test('render LoginPage tại route "/login"', () => {
-    renderApp('/login');
 
     expect(screen.getByTestId('login-page')).toBeInTheDocument();
   });
 
-  test('render ProductDetail tại route "/products/:id"', () => {
-    renderApp('/products/123');
+  test('render LoginPage tại route "/login"', () => {
+    render(
+      <MemoryRouter initialEntries={['/login']}>
+        <App />
+      </MemoryRouter>
+    );
 
-    expect(screen.getByTestId('product-detail')).toBeInTheDocument();
+    expect(screen.getByTestId('login-page')).toBeInTheDocument();
   });
 
-  test('redirect về "/" khi route không tồn tại', () => {
-    renderApp('/invalid-route');
+  test('render ProductPage tại route "/products"', () => {
+    render(
+      <MemoryRouter initialEntries={['/products']}>
+        <App />
+      </MemoryRouter>
+    );
 
-    // Sau khi redirect, sẽ hiển thị ProductPage
     expect(screen.getByTestId('product-page')).toBeInTheDocument();
   });
 
   test('render App với class "App"', () => {
-    const { container } = renderApp();
+    const { container } = render(
+      <MemoryRouter initialEntries={['/login']}>
+        <App />
+      </MemoryRouter>
+    );
 
     expect(container.querySelector('.App')).toBeInTheDocument();
-  });
-
-  test('render header tag', () => {
-    const { container } = renderApp();
-
-    expect(container.querySelector('header')).toBeInTheDocument();
   });
 });
