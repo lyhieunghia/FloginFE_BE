@@ -3,6 +3,9 @@
 *.log
 .env
 
+# === Performance test ===
+performance-tests/node_modules
+
 # === Frontend ===
 frontend/node_modules/
 frontend/dist/
