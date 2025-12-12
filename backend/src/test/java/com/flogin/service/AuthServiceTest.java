@@ -4,6 +4,9 @@ import com.flogin.dto.LoginRequest;
 import com.flogin.dto.LoginResponse;
 import com.flogin.entity.UserEntity;
 import com.flogin.repository.UserRepository;
+import com.flogin.security.InputSanitizer;
+import com.flogin.security.JwtUtil;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,7 +28,13 @@ class AuthServiceTest {
     private UserRepository mockUserRepository; // Giả lập kho user
 
     @Mock
-    private PasswordMatcher mockPasswordMatcher; // Giả lập bộ so khớp mật khẩu
+    private PasswordService mockPasswordMatcher; // Giả lập bộ so khớp mật khẩu
+
+    @Mock
+    private JwtUtil mockJwtUtil;
+
+    @Mock
+    private InputSanitizer mockInputSanitizer;
 
     // 2. Tự động "tiêm" các mock ở trên vào authService
     @InjectMocks
@@ -49,6 +58,9 @@ class AuthServiceTest {
 
         // Dữ liệu mẫu cho request đăng nhập thành công
         successRequest = new LoginRequest("testuser", "Test123");
+        
+        // Mock InputSanitizer to return username as-is
+        when(mockInputSanitizer.sanitizeUsername(anyString())).thenAnswer(i -> i.getArguments()[0]);
     }
 
     /**
@@ -66,6 +78,8 @@ class AuthServiceTest {
         // 2. Khi ai đó so khớp "Test123" với "encodedPassword123", hãy trả về true
         when(mockPasswordMatcher.matches("Test123", "encodedPassword123"))
                 .thenReturn(true);
+
+        when(mockJwtUtil.generateToken(existingUser)).thenReturn("mocked-token");
 
         // Act - Thực thi
         LoginResponse response = authService.authenticate(successRequest);

@@ -281,7 +281,7 @@ class AuthControllerTest {
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validRequest))
-                        .header("Origin", "http://localhost:3000"))
+                        .header("Origin", "https://localhost:3000"))
                 .andExpect(status().isOk())
                 .andExpect(header().exists("Access-Control-Allow-Origin"));
     }
@@ -296,7 +296,7 @@ class AuthControllerTest {
         // Act & Assert
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
                         .options("/api/auth/login")
-                        .header("Origin", "http://localhost:3000")
+                        .header("Origin", "https://localhost:3000")
                         .header("Access-Control-Request-Method", "POST")
                         .header("Access-Control-Request-Headers", "Content-Type"))
                 .andExpect(status().isOk());

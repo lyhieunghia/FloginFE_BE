@@ -23,7 +23,7 @@ describe("Product Service Unit Tests", () => {
     mockedAxios.get.mockResolvedValue({ data: [] });
     await getAllProducts();
     expect(mockedAxios.get).toHaveBeenCalledWith(
-      "http://localhost:8080/api/products"
+      "https://localhost:8080/api/products"
     );
   });
 
@@ -33,7 +33,7 @@ describe("Product Service Unit Tests", () => {
     mockedAxios.post.mockResolvedValue({ data: product });
     await createProduct(product);
     expect(mockedAxios.post).toHaveBeenCalledWith(
-      "http://localhost:8080/api/products",
+      "https://localhost:8080/api/products",
       product
     );
   });
@@ -43,7 +43,7 @@ describe("Product Service Unit Tests", () => {
     mockedAxios.delete.mockResolvedValue({});
     await deleteProduct(1);
     expect(mockedAxios.delete).toHaveBeenCalledWith(
-      "http://localhost:8080/api/products/1"
+      "https://localhost:8080/api/products/1"
     );
   });
 
@@ -58,7 +58,7 @@ describe("Product Service Unit Tests", () => {
 
     // Kiểm tra
     expect(mockedAxios.get).toHaveBeenCalledWith(
-      "http://localhost:8080/api/products/5"
+      "https://localhost:8080/api/products/5"
     );
     expect(result.data).toBe(mockProduct);
   });
@@ -70,7 +70,7 @@ describe("Product Service Unit Tests", () => {
     await updateProduct(1, productData);
 
     expect(mockedAxios.put).toHaveBeenCalledWith(
-      "http://localhost:8080/api/products/1",
+      "https://localhost:8080/api/products/1",
       productData
     );
   });
@@ -88,7 +88,7 @@ describe("Product Service Unit Tests", () => {
 
     // Kiểm tra
     expect(mockedAxios.get).toHaveBeenCalledWith(
-      "http://localhost:8080/api/products"
+      "https://localhost:8080/api/products"
     );
     expect(result.data).toBe(paginatedResponse);
   });

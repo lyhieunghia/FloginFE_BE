@@ -10,11 +10,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
@@ -29,7 +35,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ProductController.class)
-@AutoConfigureMockMvc(addFilters = false) // Tắt bảo mật để tránh lỗi 401/403
+@ContextConfiguration(classes = {ProductController.class, ProductControllerIntegrationTest.TestConfig.class})
 @DisplayName("Product API Integration Tests")
 class ProductControllerIntegrationTest {
 
@@ -131,5 +137,17 @@ class ProductControllerIntegrationTest {
 
         mockMvc.perform(delete("/api/products/{id}", productId))
                 .andExpect(status().isNoContent()); // Mong đợi mã 204 No Content
+    }
+
+    @Configuration
+    @EnableWebSecurity
+    static class TestConfig {
+        @Bean
+        SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+            http
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+            return http.build();
+        }
     }
 }

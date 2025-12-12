@@ -1,5 +1,7 @@
 package com.flogin.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -12,6 +14,7 @@ public class UserEntity {
     private String username;
     
     @Column(nullable = false)
+    @JsonIgnore
     private String password;
 
     public UserEntity() {}

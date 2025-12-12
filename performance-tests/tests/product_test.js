@@ -12,7 +12,7 @@ export const options = {
   },
 };
 
-const BASE_URL = 'http://localhost:8080';
+const BASE_URL = 'https://localhost:8080';
 
 // Hàm setup chạy 1 lần duy nhất đầu tiên để chuẩn bị dữ liệu (Lấy Token)
 export function setup() {

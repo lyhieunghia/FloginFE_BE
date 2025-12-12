@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { LoginForm } from '../components/LoginForm';
 import { validateLoginForm } from '../utils/loginValidation';
-import { mockLogin, storeAuthToken } from '../services/authService';
+import { useAuth } from '../auth/AuthProvider';
 
-export default function LoginPage({ mockApi, onSuccess }) {
+export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [usernameError, setUsernameError] = useState('');
@@ -13,8 +13,17 @@ export default function LoginPage({ mockApi, onSuccess }) {
   const [isSuccess, setIsSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Hook để điều hướng
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login, user } = useAuth();
+
+  // Redirect nếu đã login
+  useEffect(() => {
+    if (user) {
+      const from = location.state?.from || '/';
+      navigate(from, { replace: true });
+    }
+  }, [user, navigate, location]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,56 +34,41 @@ export default function LoginPage({ mockApi, onSuccess }) {
     setUsernameError('');
     setPasswordError('');
 
-    // Validate form
+    // Client-side validation
     const { isValid, usernameError, passwordError } = validateLoginForm(
       username,
       password
     );
 
-    setUsernameError(usernameError);
-    setPasswordError(passwordError);
-
     if (!isValid) {
-      setLoginMessage('Đăng nhập thất bại');
+      setUsernameError(usernameError);
+      setPasswordError(passwordError);
+      setLoginMessage('Vui lòng kiểm tra thông tin đăng nhập');
       return;
     }
 
     setLoading(true);
 
     try {
-      // Use mockApi if provided, otherwise use mockLogin
-      const apiFunction = mockApi || mockLogin;
-      const result = await apiFunction(username, password);
+      // Call AuthProvider login (sử dụng HttpOnly cookie)
+      const result = await login(username, password);
 
       if (result.success) {
-        // Login successful
-        setLoginMessage(result.message && 'Đăng nhập thành công');
+        setLoginMessage('Đăng nhập thành công');
         setIsSuccess(true);
-        setLoading(false);
 
-
-        // Store token if provided
-        if (result.token) {
-          storeAuthToken(result.token);
-        }
-
-        // Call success callback if provided
-        if (onSuccess) {
-          onSuccess();
-        } else {
-          // Default behavior: navigate to home after delay
-          setTimeout(() => {
-            navigate('');
-          }, 1500);
-        }
+        // Navigate to return URL or home
+        const from = location.state?.from || '/';
+        setTimeout(() => {
+          navigate(from, { replace: true });
+        }, 500);
       } else {
-        // Login failed
-        setLoginMessage(result.message && 'Đăng nhập thất bại');
+        setLoginMessage('Tên đăng nhập hoặc mật khẩu không đúng');
         setIsSuccess(false);
       }
     } catch (error) {
-      console.error('Login error:', error);
-      setLoginMessage(error.message && 'Network error, please try again');
+      // Don't log error details to console (security)
+      setLoginMessage('Đã xảy ra lỗi. Vui lòng thử lại.');
       setIsSuccess(false);
     } finally {
       setLoading(false);

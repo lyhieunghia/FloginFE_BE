@@ -1,8 +1,8 @@
-// src/pages/ProductPage.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect} from 'react';
 import { ProductList } from '../components/ProductList';
 import { ProductForm } from '../components/ProductForm';
 import * as productService from '../services/productService';
+import { logout } from '../services/authService';
 
 export const ProductPage = () => {
   const [products, setProducts] = useState([]);
@@ -98,9 +98,23 @@ export const ProductPage = () => {
       setMessage('');
   };
 
+const handleLogout = async () => {
+  try {
+     await logout(); 
+    window.location.href = '/login';
+  } catch (error) {
+    console.error('Logout failed:', error);
+  }
+};
 
   return (
     <main className="container">
+      {/* Thông báo (Alerts) */}
+      <div className="auth-logout">
+        <button onClick={handleLogout}>
+          Logout
+        </button>
+      </div>
       {/* Thông báo (Alerts) */}
       {message && (
         <div 

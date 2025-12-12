@@ -24,7 +24,7 @@ export const options = {
   },
 };
 
-const BASE_URL = 'http://localhost:8080'; // Đảm bảo Backend đang chạy ở port này
+const BASE_URL = 'https://localhost:8080'; // Đảm bảo Backend đang chạy ở port này
 
 export default function () {
   // Payload dựa trên LoginRequest.java

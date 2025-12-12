@@ -2,13 +2,20 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import LoginPage from '../pages/LoginPage';
-import { mockLogin } from '../services/authService';
+import { AuthProvider } from '../auth/AuthProvider';
 
-// Wrapper component that includes state management for testing
+// Mock the apiFetch function
+jest.mock('../api/apiClient', () => ({
+  apiFetch: jest.fn(),
+}));
+
+// Wrapper component that includes AuthProvider for testing
 const LoginWithState = ({ mockApi, onSuccess }) => {
   return (
     <BrowserRouter>
-      <LoginPage mockApi={mockApi} onSuccess={onSuccess} />
+      <AuthProvider>
+        <LoginPage mockApi={mockApi} onSuccess={onSuccess} />
+      </AuthProvider>
     </BrowserRouter>
   );
 };

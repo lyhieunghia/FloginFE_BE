@@ -11,7 +11,7 @@ import {
 jest.mock('axios');
 
 describe('authService', () => {
-  const API_BASE = 'http://localhost:8080';
+  const API_BASE = 'https://localhost:8080';
   const endpoint = `${API_BASE}/api/auth/login`;
 
   beforeEach(() => {

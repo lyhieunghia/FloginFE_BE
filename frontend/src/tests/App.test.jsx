@@ -2,6 +2,18 @@ import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import App from '../App';
 
+// Mock AuthProvider to bypass authentication
+jest.mock('../auth/AuthProvider', () => ({
+  AuthProvider: ({ children }) => <div>{children}</div>,
+  useAuth: () => ({
+    user: { id: 1, username: 'testuser' },
+    loading: false,
+    error: null,
+    login: jest.fn(),
+    logout: jest.fn(),
+  }),
+}));
+
 // Mock các component con
 jest.mock('../pages/LoginPage', () => {
   return function MockLoginPage() {

@@ -5,7 +5,7 @@ describe('Product E2E Tests', () => {
 
     before(() => {
         cy.login('testuser', 'Test123');
-        cy.request('POST', 'http://localhost:8080/api/testing/reset');
+        cy.request('POST', 'https://localhost:8080/api/testing/reset');
     });
 
     beforeEach(() => {        

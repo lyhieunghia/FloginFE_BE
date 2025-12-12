@@ -1,6 +1,4 @@
-import axios from 'axios';
-
-const API_BASE_URL = 'http://localhost:8080';
+import api from "./api";
 
 /**
  * Login API call using Axios
@@ -10,17 +8,12 @@ const API_BASE_URL = 'http://localhost:8080';
  */
 export const login = async (username, password) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/api/auth/login`, {
-      username,
-      password
-    });
-
+    const response = await api.post('/auth/login', { username, password });
     const data = response.data;
 
     return {
       success: true,
-      message: data.message || 'thanh cong',
-      token: data.token,
+      message: data.message || 'Thành công',
       user: data.user,
     };
   } catch (error) {
@@ -28,14 +21,33 @@ export const login = async (username, password) => {
       const data = error.response.data;
       return {
         success: false,
-        message: data.message || 'sai thong tin',
+        message: data.message || 'Sai thông tin',
       };
     } else {
       return {
         success: false,
-        message: 'Network error, please try again',
+        message: 'Network error, please thử lại',
       };
     }
+  }
+};
+
+export const logout = async () => {
+  try {
+    const response = await api.post('/auth/logout');
+    removeAuthToken();
+    
+    console.log('Logout successful:', response.data);
+    return { success: true, message: response.data?.message };
+  } catch (error) {
+    console.error('Logout failed:', error);
+    
+    removeAuthToken();
+    
+    return { 
+      success: false, 
+      message: error.response?.data?.message || 'Logout failed'
+    };
   }
 };
 
